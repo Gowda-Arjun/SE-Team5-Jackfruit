@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Fee structures{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+  <h1 class="h3 mb-0">Fee structures</h1>
+  <a class="btn btn-primary" href="{% url 'fees:structure_create' %}">Add fee structure</a>
+</div>
+{% if structures %}
+  <div class="table-responsive">
+    <table class="table table-striped align-middle">
+      <thead>
+        <tr>
+          <th scope="col">Term</th>
+          <th scope="col">Room type</th>
+          <th scope="col">Amount</th>
+          <th scope="col">Due date</th>
+          <th scope="col">Effective from</th>
+          <th scope="col"><span class="visually-hidden">Actions</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for structure in structures %}
+          <tr>
+            <td>{{ structure.term }}</td>
+            <td>{{ structure.get_room_type_display }}</td>
+            <td>{{ structure.amount }}</td>
+            <td>{{ structure.due_date }}</td>
+            <td>{{ structure.effective_from }}</td>
+            <td>
+              <a class="btn btn-sm btn-outline-primary"
+                 href="{% url 'fees:structure_edit' structure.pk %}">Edit</a>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <p>No fee structures have been configured.</p>
+{% endif %}
+{% endblock %}
