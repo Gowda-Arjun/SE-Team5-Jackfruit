@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Raise a complaint{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-md-8 col-lg-6">
+    <h1 class="h3 mb-3">Raise a maintenance complaint</h1>
+    <form method="post" enctype="multipart/form-data" novalidate>
+      {% csrf_token %}
+      <div class="mb-3">
+        <label class="form-label" for="id_category">Category</label>
+        <select class="form-select{% if form.category.errors %} is-invalid{% endif %}" name="category" id="id_category" required>
+          <option value="">Choose a category</option>
+          {% for value, label in form.fields.category.choices %}{% if value %}
+            <option value="{{ value }}"{% if form.category.value == value %} selected{% endif %}>{{ label }}</option>
+          {% endif %}{% endfor %}
+        </select>
+        {% for error in form.category.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+      </div>
+      <div class="mb-3">
+        <label class="form-label" for="id_description">Description</label>
+        <textarea class="form-control{% if form.description.errors %} is-invalid{% endif %}" name="description" id="id_description" rows="4" maxlength="2000" required>{{ form.description.value|default:"" }}</textarea>
+        {% for error in form.description.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+      </div>
+      <div class="mb-3">
+        <label class="form-label" for="id_photo">Photo (optional)</label>
+        <input class="form-control{% if form.photo.errors %} is-invalid{% endif %}" type="file" name="photo" id="id_photo" accept=".jpg,.jpeg,.png" aria-describedby="photo_help">
+        <div class="form-text" id="photo_help">{{ form.photo.help_text }}</div>
+        {% for error in form.photo.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+      </div>
+      <button class="btn btn-primary" type="submit">Submit complaint</button>
+      <a class="btn btn-link" href="{% url 'complaints:my_complaints' %}">Cancel</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

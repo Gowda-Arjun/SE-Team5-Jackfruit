@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}My complaints{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+  <h1 class="h3 mb-0">My complaints</h1>
+  <a class="btn btn-primary" href="{% url 'complaints:create' %}">Raise a complaint</a>
+</div>
+{% if complaints %}
+<div class="table-responsive">
+  <table class="table table-striped align-middle bg-white">
+    <thead>
+      <tr><th scope="col">Ticket</th><th scope="col">Category</th><th scope="col">Description</th><th scope="col">Status</th><th scope="col">Raised</th></tr>
+    </thead>
+    <tbody>
+    {% for c in complaints %}
+      <tr>
+        <td>{{ c.ticket_id }}</td>
+        <td>{{ c.get_category_display }}</td>
+        <td>{{ c.description|truncatechars:60 }}</td>
+        <td><span class="badge text-bg-{% if c.status == "RESOLVED" %}success{% elif c.status == "IN_PROGRESS" %}warning{% else %}secondary{% endif %}">{{ c.get_status_display }}</span></td>
+        <td>{{ c.created_at|date:"d M Y, H:i" }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<p class="text-muted">You haven't raised any complaints yet.</p>
+{% endif %}
+{% endblock %}
