@@ -1,9 +1,10 @@
-from django.urls import path  # noqa: F401
+from django.urls import path
 
-from . import views  # noqa: F401
+from . import views
 
 app_name = "complaints"
 
 urlpatterns = [
-    # Add this module's pages here.
+    path("", views.my_complaints, name="my_complaints"),
+    path("new/", views.complaint_create, name="create"),
 ]
