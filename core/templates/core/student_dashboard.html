@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Student dashboard{% endblock %}
+{% block content %}
+<h1 class="h3">Welcome, {{ user.first_name|default:user.username }}</h1>
+<div class="row g-3 mt-1">
+  <div class="col-12 col-md-4"><div class="card h-100"><div class="card-body">
+    <h2 class="h5 card-title">My room</h2><p class="card-text text-muted">Room allocation appears here (HMS-F-010).</p>
+  </div></div></div>
+  <div class="col-12 col-md-4"><div class="card h-100"><div class="card-body">
+    <h2 class="h5 card-title">Fees</h2><p class="card-text text-muted">Fee status appears here (HMS-F-020).</p>
+  </div></div></div>
+  <div class="col-12 col-md-4"><div class="card h-100"><div class="card-body">
+    <h2 class="h5 card-title">Complaints</h2><p class="card-text text-muted">Open complaints appear here (HMS-F-030).</p>
+  </div></div></div>
+</div>
+{% endblock %}
