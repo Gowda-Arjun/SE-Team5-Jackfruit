@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}{% if is_edit %}Edit{% else %}Create{% endif %} fee structure{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-md-8 col-lg-6">
+    <h1 class="h3 mb-3">{% if is_edit %}Edit{% else %}Create{% endif %} fee structure</h1>
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {% for field in form %}
+        <div class="mb-3">
+          <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+        </div>
+      {% endfor %}
+      {% if form.non_field_errors %}
+        <div class="alert alert-danger" role="alert">{{ form.non_field_errors }}</div>
+      {% endif %}
+      <button class="btn btn-primary" type="submit">Save fee structure</button>
+      <a class="btn btn-link" href="{% url 'fees:structure_list' %}">Cancel</a>
+    </form>
+  </div>
+</div>
+{% endblock %}
