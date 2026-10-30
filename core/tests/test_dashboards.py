@@ -122,9 +122,10 @@ def test_navigation_is_role_based_and_skips_unregistered_urls(
         assert f'href="{path}"' in response.content.decode()
     for path in unexpected_paths:
         assert f'href="{path}"' not in response.content.decode()
+
+
+
 @pytest.mark.django_db
-
-
 def test_technician_cannot_access_admin_dashboard(client):
     technician = User.objects.create_user(
         "dashboard_technician",
