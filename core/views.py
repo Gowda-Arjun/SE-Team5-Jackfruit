@@ -1,6 +1,6 @@
 from django.apps import apps
 from django.contrib.auth.decorators import login_required
-from django.core.exceptions import FieldDoesNotExist
+from django.core.exceptions import FieldDoesNotExist, PermissionDenied
 from django.db.models import F, Sum
 from django.http import JsonResponse
 from django.shortcuts import render
@@ -175,6 +175,13 @@ def _get_overdue_student_count():
 @login_required
 def home(request):
     """Role-aware landing page: student dashboard or warden/admin dashboard."""
+    if request.user.role not in (
+        request.user.Role.STUDENT,
+        request.user.Role.WARDEN,
+        request.user.Role.ADMIN,
+    ):
+        raise PermissionDenied
+
     if request.user.is_student:
         allocation = get_active_allocation(request.user)
         block_name, room = (
@@ -217,3 +224,6 @@ def home(request):
 def healthz(request):
     """Lightweight health check for uptime monitoring (HMS-NF-002)."""
     return JsonResponse({"status": "ok"})
+
+
+
