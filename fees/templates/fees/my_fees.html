@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}My fees{% endblock %}
+{% block content %}
+<h1 class="h3 mb-3">My fee statements</h1>
+{% if fee_error %}
+  <p class="alert alert-warning" role="alert">{{ fee_error }}</p>
+{% endif %}
+{% if statements %}
+  <div class="table-responsive">
+    <table class="table table-striped align-middle bg-white">
+      <thead>
+        <tr>
+          <th scope="col">Term</th>
+          <th scope="col">Fee item</th>
+          <th scope="col">Amount due</th>
+          <th scope="col">Amount paid</th>
+          <th scope="col">Balance</th>
+          <th scope="col">Due date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for statement in statements %}
+          <tr>
+            <td>{{ statement.term }}</td>
+            <td>Hostel fee{% if room_type_label %} ({{ room_type_label }}){% endif %}</td>
+            <td>{{ statement.amount_due }}</td>
+            <td>{{ statement.amount_paid }}</td>
+            <td>{{ statement.balance }}</td>
+            <td>{{ statement.due_date }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% elif not has_allocation %}
+  <p>No fee statement yet. You have not been allocated a room.</p>
+{% else %}
+  <p class="text-muted">No fee statement is available yet.</p>
+{% endif %}
+{% endblock %}

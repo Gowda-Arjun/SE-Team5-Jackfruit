@@ -2,7 +2,14 @@ from django.contrib import admin
 from django.db import transaction
 
 from audit.services import write_audit
-from .models import FeeStructure
+from .models import FeeStatement, FeeStructure
+
+
+@admin.register(FeeStatement)
+class FeeStatementAdmin(admin.ModelAdmin):
+    list_display = ("student", "term", "amount_due", "amount_paid", "due_date")
+    list_filter = ("term",)
+    search_fields = ("student__username", "student__email", "term")
 
 
 @admin.register(FeeStructure)
