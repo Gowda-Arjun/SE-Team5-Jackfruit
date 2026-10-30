@@ -224,6 +224,3 @@ def home(request):
 def healthz(request):
     """Lightweight health check for uptime monitoring (HMS-NF-002)."""
     return JsonResponse({"status": "ok"})
-
-
-
