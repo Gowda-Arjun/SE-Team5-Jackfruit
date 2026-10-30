@@ -17,7 +17,29 @@
     </button>
     <div class="collapse navbar-collapse" id="nav">
       <ul class="navbar-nav me-auto">
-        {% block nav_links %}{% endblock %}
+        {% if user.is_authenticated and user.is_student %}
+          {% url 'allocation:my_room' as my_room_url %}
+          {% if my_room_url %}<li class="nav-item"><a class="nav-link" href="{{ my_room_url }}">My room</a></li>{% endif %}
+          {% url 'fees:my_fees' as my_fees_url %}
+          {% if my_fees_url %}<li class="nav-item"><a class="nav-link" href="{{ my_fees_url }}">Fees</a></li>{% endif %}
+          {% url 'complaints:my_complaints' as my_complaints_url %}
+          {% if my_complaints_url %}<li class="nav-item"><a class="nav-link" href="{{ my_complaints_url }}">Complaints</a></li>{% endif %}
+          {% url 'accounts:profile' as profile_url %}
+          {% if profile_url %}<li class="nav-item"><a class="nav-link" href="{{ profile_url }}">Profile</a></li>{% endif %}
+        {% elif user.is_authenticated and user.is_staff_role %}
+          {% url 'allocation:room_list' as room_list_url %}
+          {% if room_list_url %}<li class="nav-item"><a class="nav-link" href="{{ room_list_url }}">Rooms</a></li>{% endif %}
+          {% url 'allocation:student_list' as student_list_url %}
+          {% if student_list_url %}<li class="nav-item"><a class="nav-link" href="{{ student_list_url }}">Students</a></li>{% endif %}
+          {% url 'allocation:allocate' as allocate_url %}
+          {% if allocate_url %}<li class="nav-item"><a class="nav-link" href="{{ allocate_url }}">Allocate</a></li>{% endif %}
+          {% url 'fees:structure_list' as structure_list_url %}
+          {% if structure_list_url %}<li class="nav-item"><a class="nav-link" href="{{ structure_list_url }}">Fees</a></li>{% endif %}
+          {% url 'complaints:queue' as complaint_queue_url %}
+          {% if complaint_queue_url %}<li class="nav-item"><a class="nav-link" href="{{ complaint_queue_url }}">Complaints</a></li>{% endif %}
+          {% url 'reports:index' as reports_index_url %}
+          {% if reports_index_url %}<li class="nav-item"><a class="nav-link" href="{{ reports_index_url }}">Reports</a></li>{% endif %}
+        {% endif %}
       </ul>
       {% if user.is_authenticated %}
         <span class="navbar-text me-3">{{ user.username }} · {{ user.get_role_display }}</span>

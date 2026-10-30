@@ -2,18 +2,34 @@
 {% block title %}Admin dashboard{% endblock %}
 {% block content %}
 <h1 class="h3">Warden / Admin dashboard</h1>
+{% url 'allocation:room_list' as room_list_url %}
+{% url 'allocation:allocate' as allocate_url %}
+{% url 'fees:structure_list' as fee_structure_url %}
+{% url 'complaints:queue' as complaint_queue_url %}
+{% url 'reports:index' as reports_url %}
 <div class="row g-3 mt-1">
-  <div class="col-12 col-md-3"><div class="card h-100"><div class="card-body">
-    <h2 class="h6 card-title">Rooms &amp; allocation</h2><p class="card-text text-muted small">HMS-F-011..015</p>
+  <div class="col-12 col-sm-6 col-xl-4"><div class="card h-100"><div class="card-body">
+    <h2 class="h5 card-title">{% if room_list_url %}<a href="{{ room_list_url }}" class="link-dark">Bed occupancy</a>{% else %}Bed occupancy{% endif %}</h2>
+    <p class="card-text mb-1">Total beds: {{ total_beds }}</p>
+    <p class="card-text mb-1">Occupied: {{ occupied_beds }}</p>
+    <p class="card-text mb-1">Vacant: {{ vacant_beds }}</p>
+    <p class="card-text">Occupancy: {{ occupancy_percent }}%</p>
   </div></div></div>
-  <div class="col-12 col-md-3"><div class="card h-100"><div class="card-body">
-    <h2 class="h6 card-title">Fee configuration</h2><p class="card-text text-muted small">HMS-F-022, F-024</p>
+  <div class="col-12 col-sm-6 col-xl-4"><div class="card h-100"><div class="card-body">
+    <h2 class="h5 card-title">{% if allocate_url %}<a href="{{ allocate_url }}" class="link-dark">Room-change requests</a>{% else %}Room-change requests{% endif %}</h2>
+    <p class="card-text">{{ pending_room_change_count }} pending request{{ pending_room_change_count|pluralize }}.</p>
   </div></div></div>
-  <div class="col-12 col-md-3"><div class="card h-100"><div class="card-body">
-    <h2 class="h6 card-title">Complaint queue</h2><p class="card-text text-muted small">HMS-F-031</p>
+  <div class="col-12 col-sm-6 col-xl-4"><div class="card h-100"><div class="card-body">
+    <h2 class="h5 card-title">{% if complaint_queue_url %}<a href="{{ complaint_queue_url }}" class="link-dark">Open complaints</a>{% else %}Open complaints{% endif %}</h2>
+    <p class="card-text">{{ open_complaint_count }} open or in-progress complaint{{ open_complaint_count|pluralize }}.</p>
   </div></div></div>
-  <div class="col-12 col-md-3"><div class="card h-100"><div class="card-body">
-    <h2 class="h6 card-title">Reports</h2><p class="card-text text-muted small">HMS-F-040, F-041</p>
+  <div class="col-12 col-sm-6 col-xl-4"><div class="card h-100"><div class="card-body">
+    <h2 class="h5 card-title">{% if fee_structure_url %}<a href="{{ fee_structure_url }}" class="link-dark">Overdue fees</a>{% else %}Overdue fees{% endif %}</h2>
+    <p class="card-text">{{ overdue_student_count }} student{{ overdue_student_count|pluralize }} with an overdue balance.</p>
+  </div></div></div>
+  <div class="col-12 col-sm-6 col-xl-4"><div class="card h-100"><div class="card-body">
+    <h2 class="h5 card-title">{% if reports_url %}<a href="{{ reports_url }}" class="link-dark">Reports</a>{% else %}Reports{% endif %}</h2>
+    <p class="card-text text-muted">View hostel reports.</p>
   </div></div></div>
 </div>
 {% endblock %}

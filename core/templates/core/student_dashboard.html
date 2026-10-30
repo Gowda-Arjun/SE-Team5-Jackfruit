@@ -2,15 +2,32 @@
 {% block title %}Student dashboard{% endblock %}
 {% block content %}
 <h1 class="h3">Welcome, {{ user.first_name|default:user.username }}</h1>
+{% url 'allocation:my_room' as my_room_url %}
+{% url 'fees:my_fees' as my_fees_url %}
+{% url 'complaints:my_complaints' as my_complaints_url %}
 <div class="row g-3 mt-1">
   <div class="col-12 col-md-4"><div class="card h-100"><div class="card-body">
-    <h2 class="h5 card-title">My room</h2><p class="card-text text-muted">Room allocation appears here (HMS-F-010).</p>
+    <h2 class="h5 card-title">{% if my_room_url %}<a href="{{ my_room_url }}" class="link-dark">My room</a>{% else %}My room{% endif %}</h2>
+    {% if allocation %}
+      <p class="card-text mb-1">Block: {{ block_name|default:"—" }}</p>
+      <p class="card-text mb-1">Room: {{ room }}</p>
+      <p class="card-text">Roommates: {{ roommate_count }}</p>
+    {% else %}
+      <p class="card-text text-muted">No room allocated.</p>
+    {% endif %}
   </div></div></div>
   <div class="col-12 col-md-4"><div class="card h-100"><div class="card-body">
-    <h2 class="h5 card-title">Fees</h2><p class="card-text text-muted">Fee status appears here (HMS-F-020).</p>
+    <h2 class="h5 card-title">{% if my_fees_url %}<a href="{{ my_fees_url }}" class="link-dark">Fees</a>{% else %}Fees{% endif %}</h2>
+    {% if fee_statement %}
+      <p class="card-text mb-1">Balance: {{ fee_balance }}</p>
+      <p class="card-text">Due date: {{ fee_statement.due_date }}</p>
+    {% else %}
+      <p class="card-text text-muted">No current fee statement.</p>
+    {% endif %}
   </div></div></div>
   <div class="col-12 col-md-4"><div class="card h-100"><div class="card-body">
-    <h2 class="h5 card-title">Complaints</h2><p class="card-text text-muted">Open complaints appear here (HMS-F-030).</p>
+    <h2 class="h5 card-title">{% if my_complaints_url %}<a href="{{ my_complaints_url }}" class="link-dark">Complaints</a>{% else %}Complaints{% endif %}</h2>
+    <p class="card-text">{{ complaint_count }} open or in-progress complaint{{ complaint_count|pluralize }}.</p>
   </div></div></div>
 </div>
 {% endblock %}
