@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Blocks{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+  <div>
+    <h1 class="h3 mb-1">Hostel Blocks</h1>
+    <p class="text-muted mb-0">Overview of blocks, gender allocations, and bed capacities</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'allocation:room_list' %}" class="btn btn-outline-secondary">View Rooms</a>
+    <a href="{% url 'allocation:block_create' %}" class="btn btn-primary">Add Block</a>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th scope="col">Block Name</th>
+          <th scope="col">Gender Policy</th>
+          <th scope="col">Total Beds</th>
+          <th scope="col">Occupied</th>
+          <th scope="col">Free Beds</th>
+          <th scope="col" class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in block_summary %}
+          <tr>
+            <td><strong>{{ item.block.name }}</strong></td>
+            <td>
+              <span class="badge {% if item.block.gender_policy == 'M' %}bg-primary{% else %}bg-danger{% endif %}">
+                {{ item.block.get_gender_policy_display }}
+              </span>
+            </td>
+            <td>{{ item.total_beds }}</td>
+            <td><span class="text-warning fw-bold">{{ item.occupied_beds }}</span></td>
+            <td><span class="text-success fw-bold">{{ item.free_beds }}</span></td>
+            <td class="text-end">
+              <a href="{% url 'allocation:block_edit' item.block.pk %}" class="btn btn-sm btn-outline-primary">Edit</a>
+              <a href="{% url 'allocation:room_list' %}?block={{ item.block.name }}" class="btn btn-sm btn-outline-secondary">View Rooms</a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="6" class="text-center py-4 text-muted">No blocks created yet.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

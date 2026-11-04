@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-md-8 col-lg-6">
+    <div class="card shadow-sm">
+      <div class="card-header bg-white py-3">
+        <h1 class="h4 mb-0">{{ title }}</h1>
+      </div>
+      <div class="card-body">
+        <form method="post" novalidate>
+          {% csrf_token %}
+          
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger" role="alert">
+              {% for error in form.non_field_errors %}{{ error }}<br>{% endfor %}
+            </div>
+          {% endif %}
+
+          <div class="mb-3">
+            <label for="id_name" class="form-label">Block Name</label>
+            {{ form.name }}
+            {% if form.name.errors %}
+              <div class="text-danger small mt-1">{{ form.name.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="mb-3">
+            <label for="id_gender_policy" class="form-label">Gender Policy</label>
+            {{ form.gender_policy }}
+            {% if form.gender_policy.errors %}
+              <div class="text-danger small mt-1">{{ form.gender_policy.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="d-flex justify-content-between pt-2">
+            <a href="{% url 'allocation:block_list' %}" class="btn btn-outline-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">Save Block</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

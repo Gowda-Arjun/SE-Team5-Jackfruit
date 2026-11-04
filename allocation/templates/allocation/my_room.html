@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}My Room{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-md-10 col-lg-8">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h1 class="h3 mb-0">My Room Allocation</h1>
+    </div>
+
+    {% if allocation %}
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white py-3">
+          <div class="d-flex justify-content-between align-items-center">
+            <h2 class="h5 mb-0">{{ allocation.room.block.name }} · Room {{ allocation.room.number }}</h2>
+            <span class="badge bg-success">Active Allocation</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-6 col-md-3">
+              <div class="text-muted small">Hostel Block</div>
+              <div class="fw-bold fs-6">{{ allocation.room.block.name }}</div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="text-muted small">Floor</div>
+              <div class="fw-bold fs-6">{{ allocation.room.floor }}</div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="text-muted small">Room Number</div>
+              <div class="fw-bold fs-6">{{ allocation.room.number }}</div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="text-muted small">Room Type</div>
+              <div class="fw-bold fs-6"><span class="badge bg-secondary">{{ allocation.room.get_room_type_display }}</span></div>
+            </div>
+            <div class="col-12 col-md-6">
+              <div class="text-muted small">Allocation Start Date</div>
+              <div>{{ allocation.start_date|date:"d M Y" }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card shadow-sm">
+        <div class="card-header bg-white py-3">
+          <h2 class="h5 mb-0">Roommates</h2>
+        </div>
+        <div class="card-body">
+          {% if roommates %}
+            <ul class="list-group list-group-flush">
+              {% for name in roommates %}
+                <li class="list-group-item d-flex align-items-center px-0">
+                  <div class="me-3">
+                    <span class="badge rounded-pill bg-light text-dark border p-2">👤</span>
+                  </div>
+                  <div>
+                    <strong>{{ name }}</strong>
+                  </div>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="text-muted mb-0">No roommates allocated to this room.</p>
+          {% endif %}
+        </div>
+      </div>
+    {% else %}
+      <div class="alert alert-info py-4 text-center shadow-sm" role="alert">
+        <h2 class="h5 alert-heading mb-2">No Active Room Allocation</h2>
+        <p class="mb-0">You have not been allocated a room yet.</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
