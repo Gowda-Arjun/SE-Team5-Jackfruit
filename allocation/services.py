@@ -1,9 +1,32 @@
+import datetime
+
 from django.db import transaction
 from django.db.models import Case, IntegerField, Sum, Value, When
 
+from audit.models import AuditLog
 from audit.services import write_audit
 
-from .models import Block, Room
+from .models import Allocation, Block, Room
+
+
+class AllocationError(Exception):
+    """Base error for allocation operations."""
+    pass
+
+
+class RoomInactive(AllocationError):
+    """Raised when room is not active."""
+    pass
+
+
+class GenderPolicyMismatch(AllocationError):
+    """Raised when student gender does not match block policy."""
+    pass
+
+
+class RoomFull(AllocationError):
+    """Raised when room occupancy has reached capacity."""
+    pass
 
 
 def get_block_availability_summary():
@@ -222,3 +245,99 @@ def deactivate_student(actor, user):
             details={"roll_number": user.roll_number},
         )
         return user
+
+
+def allocate_room(student, room, actor):
+    """Allocate a room to a student atomically with concurrency lock and validation (HMS-F-012, HMS-F-015)."""
+    denial = None
+    new_allocation = None
+
+    with transaction.atomic():
+        locked_room = Room.objects.select_for_update().select_related("block").get(pk=room.pk)
+
+        if not locked_room.is_active:
+            denial = (
+                RoomInactive("This room is inactive. Choose an active room."),
+                locked_room,
+                {"student": student.username, "reason": "Room is inactive"},
+            )
+        else:
+            student_gender = getattr(getattr(student, "profile", None), "gender", None)
+            if locked_room.block.gender_policy != student_gender:
+                denial = (
+                    GenderPolicyMismatch("This block is not available for this student."),
+                    locked_room,
+                    {
+                        "student": student.username,
+                        "student_gender": student_gender,
+                        "block_gender_policy": locked_room.block.gender_policy,
+                        "reason": "Gender policy mismatch",
+                    },
+                )
+            elif locked_room.occupancy >= locked_room.capacity:
+                denial = (
+                    RoomFull("This room has no free beds. Choose another room."),
+                    locked_room,
+                    {
+                        "student": student.username,
+                        "occupancy": locked_room.occupancy,
+                        "capacity": locked_room.capacity,
+                        "reason": "Room is full",
+                    },
+                )
+
+        if not denial:
+            old_allocation = (
+                Allocation.objects.select_for_update()
+                .filter(student=student, status=Allocation.Status.ACTIVE)
+                .first()
+            )
+
+            today = datetime.date.today()
+            if old_allocation is not None:
+                old_allocation.status = Allocation.Status.ENDED
+                old_allocation.end_date = today
+                old_allocation.save(update_fields=["status", "end_date"])
+
+                if old_allocation.room_id == locked_room.pk:
+                    locked_room.occupancy -= 1
+                else:
+                    old_room = Room.objects.select_for_update().get(pk=old_allocation.room_id)
+                    old_room.occupancy = max(old_room.occupancy - 1, 0)
+                    old_room.save(update_fields=["occupancy"])
+
+            new_allocation = Allocation.objects.create(
+                student=student,
+                room=locked_room,
+                start_date=today,
+                status=Allocation.Status.ACTIVE,
+            )
+
+            locked_room.occupancy += 1
+            locked_room.save(update_fields=["occupancy"])
+
+            write_audit(
+                actor,
+                "ROOM_ALLOCATED",
+                target=new_allocation,
+                outcome=AuditLog.Outcome.SUCCESS,
+                details={
+                    "student": student.username,
+                    "room": locked_room.number,
+                    "block": locked_room.block.name,
+                    "is_reallocation": old_allocation is not None,
+                },
+            )
+
+    if denial:
+        exc, target, details = denial
+        write_audit(
+            actor,
+            "ROOM_ALLOCATED",
+            target=target,
+            outcome=AuditLog.Outcome.DENIED,
+            details=details,
+        )
+        raise exc
+
+    return new_allocation

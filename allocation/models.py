@@ -1,3 +1,5 @@
+import datetime
+
 from django.db import models
 
 
@@ -45,3 +47,42 @@ class Room(models.Model):
 
     def __str__(self):
         return f"{self.block.name} - Room {self.number}"
+
+
+class Allocation(models.Model):
+    """Room allocation record for a student (HMS-F-012, HMS-F-015)."""
+
+    class Status(models.TextChoices):
+        ACTIVE = "ACTIVE", "Active"
+        ENDED = "ENDED", "Ended"
+
+    student = models.ForeignKey(
+        "accounts.User",
+        on_delete=models.PROTECT,
+        related_name="allocations",
+    )
+    room = models.ForeignKey(
+        Room,
+        on_delete=models.PROTECT,
+        related_name="allocations",
+    )
+    start_date = models.DateField(default=datetime.date.today)
+    end_date = models.DateField(null=True, blank=True)
+    status = models.CharField(
+        max_length=8,
+        choices=Status.choices,
+        default=Status.ACTIVE,
+    )
+
+    class Meta:
+        ordering = ["-start_date", "-id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["student"],
+                condition=models.Q(status="ACTIVE"),
+                name="unique_active_student_allocation",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.student.username} -> {self.room} ({self.status})"

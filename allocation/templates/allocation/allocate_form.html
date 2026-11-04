@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-md-8 col-lg-6">
+    <div class="card shadow-sm">
+      <div class="card-header bg-white py-3">
+        <h1 class="h4 mb-0">{{ title }}</h1>
+      </div>
+      <div class="card-body">
+        <form method="post" novalidate>
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger" role="alert">
+              {% for error in form.non_field_errors %}{{ error }}<br>{% endfor %}
+            </div>
+          {% endif %}
+
+          <div class="mb-3">
+            <label for="id_student" class="form-label">Student (Select Student)</label>
+            {{ form.student }}
+            {% if form.student.errors %}
+              <div class="text-danger small mt-1">{{ form.student.errors.0 }}</div>
+            {% endif %}
+            <div class="form-text">Students with active status and their gender are shown.</div>
+          </div>
+
+          <div class="mb-3">
+            <label for="id_room" class="form-label">Available Room (Block, Type & Free Capacity)</label>
+            {{ form.room }}
+            {% if form.room.errors %}
+              <div class="text-danger small mt-1">{{ form.room.errors.0 }}</div>
+            {% endif %}
+            <div class="form-text">Only active rooms with free capacity are listed.</div>
+          </div>
+
+          <div class="d-flex justify-content-between pt-3">
+            <a href="{% url 'allocation:room_list' %}" class="btn btn-outline-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">Confirm Allocation</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

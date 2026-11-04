@@ -7,9 +7,19 @@ from django.views.decorators.http import require_POST
 from accounts.models import User
 from core.decorators import role_required
 
-from .forms import BlockForm, RoomForm, StudentCreateForm, StudentEditForm
+from .forms import (
+    AllocationForm,
+    BlockForm,
+    RoomForm,
+    StudentCreateForm,
+    StudentEditForm,
+)
 from .models import Block, Room
 from .services import (
+    GenderPolicyMismatch,
+    RoomFull,
+    RoomInactive,
+    allocate_room,
     create_block,
     create_room,
     create_student,
@@ -264,3 +274,31 @@ def student_deactivate(request, pk):
     deactivate_student(request.user, user)
     messages.success(request, f"Student {user.roll_number} has been deactivated.")
     return redirect("allocation:student_list")
+
+
+@role_required(User.Role.ADMIN, User.Role.WARDEN)
+def allocate(request):
+    """Allocate or reallocate a room to a student (HMS-F-012, HMS-F-015)."""
+    if request.method == "POST":
+        form = AllocationForm(request.POST)
+        if form.is_valid():
+            student = form.cleaned_data["student"]
+            room = form.cleaned_data["room"]
+            try:
+                allocate_room(student=student, room=room, actor=request.user)
+                student_name = getattr(getattr(student, "profile", None), "full_name", student.username)
+                messages.success(
+                    request,
+                    f"Room {room.number} in {room.block.name} successfully allocated to {student_name}.",
+                )
+                return redirect("allocation:room_list")
+            except RoomInactive:
+                messages.error(request, "This room is inactive. Choose an active room.")
+            except GenderPolicyMismatch:
+                messages.error(request, "This block is not available for this student.")
+            except RoomFull:
+                messages.error(request, "This room has no free beds. Choose another room.")
+    else:
+        form = AllocationForm()
+
+    return render(request, "allocation/allocate_form.html", {"form": form, "title": "Allocate Room"})

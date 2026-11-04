@@ -1,5 +1,8 @@
 from django import forms
 from django.core.exceptions import ValidationError
+from django.db import models
+
+from accounts.models import StudentProfile, User
 
 from .models import Block, Room
 
@@ -46,8 +49,6 @@ class RoomForm(forms.ModelForm):
 
 
 class StudentCreateForm(forms.Form):
-    from accounts.models import StudentProfile
-
     roll_number = forms.CharField(
         max_length=20,
         widget=forms.TextInput(attrs={"class": "form-control", "id": "id_roll_number"}),
@@ -89,8 +90,6 @@ class StudentCreateForm(forms.Form):
     )
 
     def clean_roll_number(self):
-        from accounts.models import User
-
         roll_number = self.cleaned_data["roll_number"].strip()
         if (
             User.objects.filter(roll_number__iexact=roll_number).exists()
@@ -100,8 +99,6 @@ class StudentCreateForm(forms.Form):
         return roll_number
 
     def clean_email(self):
-        from accounts.models import User
-
         email = self.cleaned_data["email"].strip().lower()
         if User.objects.filter(email__iexact=email).exists():
             raise ValidationError("A user with this email address already exists.")
@@ -109,8 +106,6 @@ class StudentCreateForm(forms.Form):
 
 
 class StudentEditForm(forms.Form):
-    from accounts.models import StudentProfile
-
     email = forms.EmailField(
         widget=forms.EmailInput(attrs={"class": "form-control", "id": "id_email"}),
     )
@@ -152,8 +147,6 @@ class StudentEditForm(forms.Form):
         self.user = user
 
     def clean_email(self):
-        from accounts.models import User
-
         email = self.cleaned_data["email"].strip().lower()
         qs = User.objects.filter(email__iexact=email)
         if self.user:
@@ -161,3 +154,37 @@ class StudentEditForm(forms.Form):
         if qs.exists():
             raise ValidationError("A user with this email address already exists.")
         return email
+
+
+class AllocationForm(forms.Form):
+    student = forms.ModelChoiceField(
+        queryset=User.objects.filter(role=User.Role.STUDENT, is_active=True)
+        .select_related("profile")
+        .order_by("roll_number"),
+        widget=forms.Select(attrs={"class": "form-select", "id": "id_student"}),
+        label="Student",
+    )
+    room = forms.ModelChoiceField(
+        queryset=Room.objects.filter(is_active=True, occupancy__lt=models.F("capacity"))
+        .select_related("block")
+        .order_by("block__name", "number"),
+        widget=forms.Select(attrs={"class": "form-select", "id": "id_room"}),
+        label="Available Room",
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["student"].label_from_instance = (
+            lambda u: (
+                f"{getattr(getattr(u, 'profile', None), 'full_name', u.username)} "
+                f"({u.roll_number or u.username}) "
+                f"[{getattr(getattr(u, 'profile', None), 'gender', '-')}]"
+            )
+        )
+        self.fields["room"].label_from_instance = (
+            lambda r: (
+                f"{r.block.name} Room {r.number} "
+                f"({r.get_room_type_display()}, Policy: {r.block.get_gender_policy_display()}, "
+                f"Free: {r.capacity - r.occupancy})"
+            )
+        )
