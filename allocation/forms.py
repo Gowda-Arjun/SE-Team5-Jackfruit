@@ -43,3 +43,121 @@ class RoomForm(forms.ModelForm):
             if qs.exists():
                 raise ValidationError({"number": "A room with this number already exists in this block."})
         return cleaned_data
+
+
+class StudentCreateForm(forms.Form):
+    from accounts.models import StudentProfile
+
+    roll_number = forms.CharField(
+        max_length=20,
+        widget=forms.TextInput(attrs={"class": "form-control", "id": "id_roll_number"}),
+    )
+    email = forms.EmailField(
+        widget=forms.EmailInput(attrs={"class": "form-control", "id": "id_email"}),
+    )
+    full_name = forms.CharField(
+        max_length=120,
+        widget=forms.TextInput(attrs={"class": "form-control", "id": "id_full_name"}),
+    )
+    gender = forms.ChoiceField(
+        choices=StudentProfile.Gender.choices,
+        widget=forms.Select(attrs={"class": "form-select", "id": "id_gender"}),
+    )
+    phone = forms.CharField(
+        max_length=15,
+        required=False,
+        widget=forms.TextInput(attrs={"class": "form-control", "id": "id_phone"}),
+    )
+    address = forms.CharField(
+        widget=forms.Textarea(attrs={"class": "form-control", "id": "id_address", "rows": 2}),
+        required=False,
+    )
+    guardian_name = forms.CharField(
+        max_length=120,
+        required=False,
+        widget=forms.TextInput(attrs={"class": "form-control", "id": "id_guardian_name"}),
+    )
+    guardian_phone = forms.CharField(
+        max_length=15,
+        required=False,
+        widget=forms.TextInput(attrs={"class": "form-control", "id": "id_guardian_phone"}),
+    )
+    emergency_contact = forms.CharField(
+        max_length=120,
+        required=False,
+        widget=forms.TextInput(attrs={"class": "form-control", "id": "id_emergency_contact"}),
+    )
+
+    def clean_roll_number(self):
+        from accounts.models import User
+
+        roll_number = self.cleaned_data["roll_number"].strip()
+        if (
+            User.objects.filter(roll_number__iexact=roll_number).exists()
+            or User.objects.filter(username__iexact=roll_number).exists()
+        ):
+            raise ValidationError("A user with this roll number already exists.")
+        return roll_number
+
+    def clean_email(self):
+        from accounts.models import User
+
+        email = self.cleaned_data["email"].strip().lower()
+        if User.objects.filter(email__iexact=email).exists():
+            raise ValidationError("A user with this email address already exists.")
+        return email
+
+
+class StudentEditForm(forms.Form):
+    from accounts.models import StudentProfile
+
+    email = forms.EmailField(
+        widget=forms.EmailInput(attrs={"class": "form-control", "id": "id_email"}),
+    )
+    full_name = forms.CharField(
+        max_length=120,
+        widget=forms.TextInput(attrs={"class": "form-control", "id": "id_full_name"}),
+    )
+    gender = forms.ChoiceField(
+        choices=StudentProfile.Gender.choices,
+        widget=forms.Select(attrs={"class": "form-select", "id": "id_gender"}),
+    )
+    phone = forms.CharField(
+        max_length=15,
+        required=False,
+        widget=forms.TextInput(attrs={"class": "form-control", "id": "id_phone"}),
+    )
+    address = forms.CharField(
+        widget=forms.Textarea(attrs={"class": "form-control", "id": "id_address", "rows": 2}),
+        required=False,
+    )
+    guardian_name = forms.CharField(
+        max_length=120,
+        required=False,
+        widget=forms.TextInput(attrs={"class": "form-control", "id": "id_guardian_name"}),
+    )
+    guardian_phone = forms.CharField(
+        max_length=15,
+        required=False,
+        widget=forms.TextInput(attrs={"class": "form-control", "id": "id_guardian_phone"}),
+    )
+    emergency_contact = forms.CharField(
+        max_length=120,
+        required=False,
+        widget=forms.TextInput(attrs={"class": "form-control", "id": "id_emergency_contact"}),
+    )
+
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user = user
+
+    def clean_email(self):
+        from accounts.models import User
+
+        email = self.cleaned_data["email"].strip().lower()
+        qs = User.objects.filter(email__iexact=email)
+        if self.user:
+            qs = qs.exclude(pk=self.user.pk)
+        if qs.exists():
+            raise ValidationError("A user with this email address already exists.")
+        return email

@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Student Records{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+  <div>
+    <h1 class="h3 mb-1">Student Directory</h1>
+    <p class="text-muted mb-0">Manage registered students, records, and status</p>
+  </div>
+  <div>
+    <a href="{% url 'allocation:student_create' %}" class="btn btn-primary">Add Student</a>
+  </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+  <div class="card-body">
+    <form method="get" class="row g-2 align-items-center">
+      <div class="col-12 col-sm-8 col-md-9">
+        <label for="id_search_query" class="visually-hidden">Search Students</label>
+        <input type="text" name="q" id="id_search_query" class="form-control" placeholder="Search by name, roll number, or email..." value="{{ query }}">
+      </div>
+      <div class="col-6 col-sm-2 col-md-2 d-grid">
+        <button type="submit" class="btn btn-outline-primary">Search</button>
+      </div>
+      <div class="col-6 col-sm-2 col-md-1 d-grid">
+        {% if query %}
+          <a href="{% url 'allocation:student_list' %}" class="btn btn-outline-secondary">Reset</a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th scope="col">Roll Number</th>
+          <th scope="col">Full Name</th>
+          <th scope="col">Gender</th>
+          <th scope="col">Email</th>
+          <th scope="col">Phone</th>
+          <th scope="col" class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for student in page_obj %}
+          <tr>
+            <td><strong>{{ student.roll_number }}</strong></td>
+            <td>{{ student.profile.full_name|default:student.username }}</td>
+            <td>
+              <span class="badge {% if student.profile.gender == 'M' %}bg-primary{% elif student.profile.gender == 'F' %}bg-danger{% else %}bg-secondary{% endif %}">
+                {{ student.profile.get_gender_display|default:"-" }}
+              </span>
+            </td>
+            <td>{{ student.email }}</td>
+            <td>{{ student.profile.phone|default:"-" }}</td>
+            <td class="text-end">
+              <a href="{% url 'allocation:student_edit' student.pk %}" class="btn btn-sm btn-outline-primary">Edit</a>
+              <form action="{% url 'allocation:student_deactivate' student.pk %}" method="post" class="d-inline" onsubmit="return confirm('Deactivate student {{ student.roll_number }}? This will block their login.');">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-outline-danger">Deactivate</button>
+              </form>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="6" class="text-center py-4 text-muted">
+              {% if query %}No students matched your search criteria.{% else %}No active students found.{% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if page_obj.has_other_pages %}
+    <div class="card-footer bg-white py-3">
+      <nav aria-label="Student directory pagination">
+        <ul class="pagination justify-content-center mb-0">
+          {% if page_obj.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">Previous</a></li>
+          {% else %}
+            <li class="page-item disabled"><span class="page-link">Previous</span></li>
+          {% endif %}
+          
+          <li class="page-item disabled"><span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
+
+          {% if page_obj.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}">Next</a></li>
+          {% else %}
+            <li class="page-item disabled"><span class="page-link">Next</span></li>
+          {% endif %}
+        </ul>
+      </nav>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

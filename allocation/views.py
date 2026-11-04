@@ -1,19 +1,24 @@
 from django.contrib import messages
+from django.core.paginator import Paginator
+from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from accounts.models import User
 from core.decorators import role_required
 
-from .forms import BlockForm, RoomForm
+from .forms import BlockForm, RoomForm, StudentCreateForm, StudentEditForm
 from .models import Block, Room
 from .services import (
     create_block,
     create_room,
+    create_student,
     deactivate_room,
+    deactivate_student,
     get_block_availability_summary,
     update_block,
     update_room,
+    update_student,
 )
 
 
@@ -135,3 +140,127 @@ def room_deactivate(request, pk):
     deactivate_room(request.user, room)
     messages.success(request, f"Room {room.number} has been deactivated.")
     return redirect("allocation:room_list")
+
+
+@role_required(User.Role.ADMIN, User.Role.WARDEN)
+def student_list(request):
+    """List active students with search (name / roll number) and pagination (25 per page)."""
+    query = request.GET.get("q", "").strip()
+    students_qs = (
+        User.objects.filter(role=User.Role.STUDENT, is_active=True)
+        .select_related("profile")
+        .order_by("roll_number")
+    )
+    if query:
+        students_qs = students_qs.filter(
+            Q(profile__full_name__icontains=query)
+            | Q(roll_number__icontains=query)
+            | Q(username__icontains=query)
+            | Q(email__icontains=query)
+        )
+
+    paginator = Paginator(students_qs, 25)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    return render(
+        request,
+        "allocation/student_list.html",
+        {
+            "page_obj": page_obj,
+            "query": query,
+            "total_count": students_qs.count(),
+        },
+    )
+
+
+@role_required(User.Role.ADMIN, User.Role.WARDEN)
+def student_create(request):
+    """Create a new student with profile and unusable password."""
+    if request.method == "POST":
+        form = StudentCreateForm(request.POST)
+        if form.is_valid():
+            user = create_student(
+                actor=request.user,
+                roll_number=form.cleaned_data["roll_number"],
+                email=form.cleaned_data["email"],
+                full_name=form.cleaned_data["full_name"],
+                gender=form.cleaned_data["gender"],
+                phone=form.cleaned_data.get("phone", ""),
+                address=form.cleaned_data.get("address", ""),
+                guardian_name=form.cleaned_data.get("guardian_name", ""),
+                guardian_phone=form.cleaned_data.get("guardian_phone", ""),
+                emergency_contact=form.cleaned_data.get("emergency_contact", ""),
+            )
+            messages.success(
+                request,
+                f"Student record created for {user.profile.full_name} ({user.roll_number}).",
+            )
+            return redirect("allocation:student_list")
+    else:
+        form = StudentCreateForm()
+    return render(
+        request,
+        "allocation/student_form.html",
+        {"form": form, "title": "Add Student Record", "is_create": True},
+    )
+
+
+@role_required(User.Role.ADMIN, User.Role.WARDEN)
+def student_edit(request, pk):
+    """Edit student details."""
+    user = get_object_or_404(User, pk=pk, role=User.Role.STUDENT)
+    profile = getattr(user, "profile", None)
+    if request.method == "POST":
+        form = StudentEditForm(request.POST, user=user)
+        if form.is_valid():
+            update_student(
+                actor=request.user,
+                user=user,
+                email=form.cleaned_data["email"],
+                full_name=form.cleaned_data["full_name"],
+                gender=form.cleaned_data["gender"],
+                phone=form.cleaned_data.get("phone", ""),
+                address=form.cleaned_data.get("address", ""),
+                guardian_name=form.cleaned_data.get("guardian_name", ""),
+                guardian_phone=form.cleaned_data.get("guardian_phone", ""),
+                emergency_contact=form.cleaned_data.get("emergency_contact", ""),
+            )
+            messages.success(
+                request,
+                f"Student record for {user.profile.full_name} updated successfully.",
+            )
+            return redirect("allocation:student_list")
+    else:
+        initial = {
+            "email": user.email,
+            "full_name": profile.full_name if profile else "",
+            "gender": profile.gender if profile else "",
+            "phone": profile.phone if profile else "",
+            "address": profile.address if profile else "",
+            "guardian_name": profile.guardian_name if profile else "",
+            "guardian_phone": profile.guardian_phone if profile else "",
+            "emergency_contact": profile.emergency_contact if profile else "",
+        }
+        form = StudentEditForm(initial=initial, user=user)
+
+    return render(
+        request,
+        "allocation/student_form.html",
+        {
+            "form": form,
+            "title": f"Edit Student: {user.roll_number}",
+            "student_user": user,
+            "is_create": False,
+        },
+    )
+
+
+@require_POST
+@role_required(User.Role.ADMIN, User.Role.WARDEN)
+def student_deactivate(request, pk):
+    """Deactivate a student account (sets is_active=False; never deletes)."""
+    user = get_object_or_404(User, pk=pk, role=User.Role.STUDENT)
+    deactivate_student(request.user, user)
+    messages.success(request, f"Student {user.roll_number} has been deactivated.")
+    return redirect("allocation:student_list")

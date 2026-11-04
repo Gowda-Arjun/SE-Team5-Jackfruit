@@ -12,4 +12,8 @@ urlpatterns = [
     path("blocks/", views.block_list, name="block_list"),
     path("blocks/create/", views.block_create, name="block_create"),
     path("blocks/<int:pk>/edit/", views.block_edit, name="block_edit"),
+    path("students/", views.student_list, name="student_list"),
+    path("students/create/", views.student_create, name="student_create"),
+    path("students/<int:pk>/edit/", views.student_edit, name="student_edit"),
+    path("students/<int:pk>/deactivate/", views.student_deactivate, name="student_deactivate"),
 ]
