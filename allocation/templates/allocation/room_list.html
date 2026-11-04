@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}Rooms & Blocks{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+  <h1 class="h3 mb-0">Rooms & Capacity Management</h1>
+  <div class="d-flex gap-2">
+    <a href="{% url 'allocation:block_list' %}" class="btn btn-outline-secondary">Manage Blocks</a>
+    <a href="{% url 'allocation:room_create' %}" class="btn btn-primary">Add Room</a>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-12">
+    <h2 class="h5 mb-3">Block Availability Summary</h2>
+  </div>
+  {% for item in block_summary %}
+    <div class="col-12 col-md-6 col-lg-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h3 class="h5 card-title mb-0">{{ item.block.name }}</h3>
+            <span class="badge {% if item.block.gender_policy == 'M' %}bg-primary{% else %}bg-danger{% endif %}">
+              {{ item.block.get_gender_policy_display }}
+            </span>
+          </div>
+          <p class="text-muted small mb-3">Total Beds: <strong>{{ item.total_beds }}</strong></p>
+          <div class="row text-center g-2">
+            <div class="col-6">
+              <div class="p-2 bg-light rounded border">
+                <div class="text-muted small">Occupied</div>
+                <div class="fw-bold fs-5 text-warning">{{ item.occupied_beds }}</div>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="p-2 bg-light rounded border">
+                <div class="text-muted small">Free</div>
+                <div class="fw-bold fs-5 text-success">{{ item.free_beds }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% empty %}
+    <div class="col-12">
+      <div class="alert alert-info mb-0">No blocks configured yet. <a href="{% url 'allocation:block_create' %}">Create the first block</a>.</div>
+    </div>
+  {% endfor %}
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-header bg-white py-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+    <h2 class="h5 mb-0">Room Inventory</h2>
+    <form method="get" class="d-flex gap-2 align-items-center">
+      <label for="id_block_filter" class="visually-hidden">Filter by Block</label>
+      <select name="block" id="id_block_filter" class="form-select form-select-sm" onchange="this.form.submit()">
+        <option value="">All Blocks</option>
+        {% for b in blocks %}
+          <option value="{{ b.name }}" {% if selected_block == b.name %}selected{% endif %}>{{ b.name }}</option>
+        {% endfor %}
+      </select>
+      {% if selected_block %}
+        <a href="{% url 'allocation:room_list' %}" class="btn btn-outline-secondary btn-sm">Clear</a>
+      {% endif %}
+    </form>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th scope="col">Block</th>
+          <th scope="col">Room</th>
+          <th scope="col">Floor</th>
+          <th scope="col">Type</th>
+          <th scope="col">Capacity</th>
+          <th scope="col">Occupancy</th>
+          <th scope="col">Status</th>
+          <th scope="col" class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for room in rooms %}
+          <tr class="{% if not room.is_active %}table-secondary text-muted{% endif %}">
+            <td><strong>{{ room.block.name }}</strong></td>
+            <td>{{ room.number }}</td>
+            <td>{{ room.floor }}</td>
+            <td><span class="badge bg-secondary">{{ room.get_room_type_display }}</span></td>
+            <td>{{ room.capacity }}</td>
+            <td>
+              <span class="badge {% if room.occupancy >= room.capacity %}bg-danger{% elif room.occupancy > 0 %}bg-warning text-dark{% else %}bg-success{% endif %}">
+                {{ room.occupancy }} / {{ room.capacity }}
+              </span>
+            </td>
+            <td>
+              {% if room.is_active %}
+                <span class="badge bg-success">Active</span>
+              {% else %}
+                <span class="badge bg-secondary">Inactive</span>
+              {% endif %}
+            </td>
+            <td class="text-end">
+              <a href="{% url 'allocation:room_edit' room.pk %}" class="btn btn-sm btn-outline-primary">Edit</a>
+              {% if room.is_active %}
+                <form action="{% url 'allocation:room_deactivate' room.pk %}" method="post" class="d-inline" onsubmit="return confirm('Deactivate room {{ room.number }}?');">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-outline-danger">Deactivate</button>
+                </form>
+              {% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="8" class="text-center py-4 text-muted">No rooms found.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
