@@ -14,7 +14,7 @@ from .forms import (
     StudentCreateForm,
     StudentEditForm,
 )
-from .models import Block, Room
+from .models import Allocation, Block, Room
 from .services import (
     GenderPolicyMismatch,
     RoomFull,
@@ -302,3 +302,33 @@ def allocate(request):
         form = AllocationForm()
 
     return render(request, "allocation/allocate_form.html", {"form": form, "title": "Allocate Room"})
+
+
+@role_required(User.Role.STUDENT)
+def my_room(request):
+    """Student-only view showing their active room allocation and roommates (HMS-F-010)."""
+    allocation = (
+        Allocation.objects.filter(student=request.user, status=Allocation.Status.ACTIVE)
+        .select_related("room__block")
+        .first()
+    )
+    roommates = []
+    if allocation:
+        roommate_allocs = (
+            Allocation.objects.filter(room=allocation.room, status=Allocation.Status.ACTIVE)
+            .exclude(student=request.user)
+            .select_related("student__profile")
+        )
+        roommates = [
+            getattr(getattr(a.student, "profile", None), "full_name", a.student.username)
+            for a in roommate_allocs
+        ]
+
+    return render(
+        request,
+        "allocation/my_room.html",
+        {
+            "allocation": allocation,
+            "roommates": roommates,
+        },
+    )
