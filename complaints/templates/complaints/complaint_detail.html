@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}{{ complaint.ticket_id }}{% endblock %}
+{% block content %}
+<p><a href="{% url 'complaints:my_complaints' %}">&larr; My complaints</a></p>
+<h1 class="h3">{{ complaint.ticket_id }} <span class="badge text-bg-{% if complaint.status == "RESOLVED" %}success{% elif complaint.status == "IN_PROGRESS" %}warning{% else %}secondary{% endif %}">{{ complaint.get_status_display }}</span></h1>
+<dl class="row mt-3">
+  <dt class="col-sm-3">Category</dt><dd class="col-sm-9">{{ complaint.get_category_display }}</dd>
+  <dt class="col-sm-3">Description</dt><dd class="col-sm-9">{{ complaint.description|linebreaksbr }}</dd>
+  <dt class="col-sm-3">Raised</dt><dd class="col-sm-9">{{ complaint.created_at|date:"d M Y, H:i" }}</dd>
+  {% if complaint.photo %}<dt class="col-sm-3">Photo</dt><dd class="col-sm-9">Attached</dd>{% endif %}
+</dl>
+<h2 class="h5">Status timeline</h2>
+<ol class="list-group list-group-numbered">
+  {% for h in history %}
+    <li class="list-group-item">
+      <strong>{{ h.get_new_status_display }}</strong>
+      <span class="text-muted">· {{ h.changed_at|date:"d M Y, H:i" }}</span>
+    </li>
+  {% endfor %}
+</ol>
+{% endblock %}
