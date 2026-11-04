@@ -18,9 +18,9 @@
 |---|---|---|
 | **Day 1 (Wed 28 Oct), morning** | Setup: collaborators, Actions, Project board, backlog issues, setup PR (HMS-01), CI PR (HMS-02) | Arjun + Arnav (others install tools meanwhile) |
 | **Day 1, afternoon–evening** | **Sprint 1:** everyone builds and PRs their Sprint 1 issues; Arjun reviews and merges | Everyone |
-| **Day 1, night** | Sprint 1 demo video (1 min), Sprint 1 review, close milestone | Arnav records, everyone checks |
+| **Day 1, night** | Sprint 1 review, close milestone (no separate Sprint 1 video: HMS-20 merged into HMS-37, see DEVIATIONS D7) | Arjun |
 | **Day 2 (Thu 29 Oct)** | **Sprint 2:** everyone builds and PRs their Sprint 2 issues | Everyone |
-| **Day 2, night** | Sprint 2 video (2 min), final docs, RTM, tag `v1.0` (freeze) | Arnav + Arjun |
+| **Day 2, night** | Final demo video covering both sprints (~3 min), final docs, RTM, tag `v1.0` (freeze) | Arnav + Arjun |
 | Fri 30 Oct | Buffer only: fixes, re-record if needed | – |
 
 **Hard rule:** nobody opens a PR or creates an issue until Arnav says "backlog is up". The issue numbers must match the backlog IDs (#1 = HMS-01 … #37 = HMS-37).

@@ -124,7 +124,7 @@ One PR, description with both `Closes #11` and `Closes #12`.
 ### C5. Update the RTM later
 After HMS-36 (Arnav) adds `docs/RTM.md`, set your rows (F-010 to F-015) to **A** in any later PR of yours.
 
-### C6. Close Sprint 1 (Day 1 night, after Arnav's video PR HMS-20 is merged)
+### C6. Close Sprint 1 (once all Sprint 1 issues are merged; HMS-20 is already closed as merged into HMS-37)
 Repo → **Issues** → **Milestones** → **Sprint 1**. Any open issue that won't be finished: open it → right sidebar **Milestone** → change to **Sprint 2**. Then click **Close** on the Sprint 1 milestone.
 
 ---
