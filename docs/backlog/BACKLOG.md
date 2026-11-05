@@ -4,7 +4,7 @@ Source of truth: [`backlog.csv`](backlog.csv). Every item traces to an SRS v1.0 
 
 ## Sprint 1 - 19-23 Oct 2026 (completed late, 28 Oct)
 
-**Points:** 56 total - Arjav 13, Arjun 21, Armaan 10, Arnav 12
+**Points:** 55 total - Arjav 13, Arjun 21, Armaan 10, Arnav 11
 
 | ID | Item | Requirement | Owner | SP | Priority |
 |---|---|---|---|---|---|
@@ -27,11 +27,11 @@ Source of truth: [`backlog.csv`](backlog.csv). Every item traces to an SRS v1.0 
 | HMS-17 | No card data stored - schema review | HMS-SR-005 | Armaan | 1 | High |
 | HMS-18 | Immutable audit log for admin actions | HMS-SR-004 | Arnav | 3 | High |
 | HMS-19 | Student raises maintenance complaint with optional photo | HMS-F-030 | Arnav | 3 | Medium |
-| HMS-20 | Sprint 1 demo video (1 min) uploaded to repo | Deliverable 2g/2h | Arnav | 1 | High |
+| HMS-20 | ~~Sprint 1 demo video (1 min)~~ merged into HMS-37 (see DEVIATIONS D7) | Deliverable 2g/2h | Arnav | 0 | High |
 
 ## Sprint 2 - 26-30 Oct 2026
 
-**Points:** 53 total - Arjav 9, Arjun 10, Armaan 16, Arnav 18
+**Points:** 54 total - Arjav 9, Arjun 10, Armaan 16, Arnav 19
 
 | ID | Item | Requirement | Owner | SP | Priority |
 |---|---|---|---|---|---|
@@ -51,4 +51,4 @@ Source of truth: [`backlog.csv`](backlog.csv). Every item traces to an SRS v1.0 
 | HMS-34 | Data protection: per-user filtering and no PII in logs | HMS-NF-003 | Arnav | 2 | High |
 | HMS-35 | Audit log retention (3 years) and archive export | HMS-NF-004 | Arnav | 2 | High |
 | HMS-36 | Final documentation: deviations + RTM status + README | Deliverable 3c | Arnav | 2 | High |
-| HMS-37 | Sprint 2 demo video (2 min) uploaded to repo | Deliverable 3b | Arnav | 1 | High |
+| HMS-37 | Final demo video (Sprint 1 + Sprint 2, ~3 min) uploaded to repo | Deliverable 2g/2h + 3b | Arnav | 2 | High |
