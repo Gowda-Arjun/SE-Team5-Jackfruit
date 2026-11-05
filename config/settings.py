@@ -116,3 +116,7 @@ EMAIL_BACKEND = os.environ.get(
 SESSION_COOKIE_AGE = 20 * 60
 SESSION_SAVE_EVERY_REQUEST = True
 SESSION_COOKIE_HTTPONLY = True
+
+# Audit log retention (HMS-NF-004): keep at least 3 years; older rows are exported by
+# `python manage.py archive_audit` and can be restored with `restore_audit`.
+AUDIT_RETENTION_DAYS = 3 * 365
