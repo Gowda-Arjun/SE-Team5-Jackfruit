@@ -42,3 +42,27 @@ class Complaint(models.Model):
 
     def __str__(self):
         return f"{self.ticket_id} ({self.get_status_display()})"
+
+
+# Allowed status moves (HMS-F-031): Open -> In Progress -> Resolved only.
+ALLOWED_TRANSITIONS = {
+    Complaint.Status.OPEN: {Complaint.Status.IN_PROGRESS},
+    Complaint.Status.IN_PROGRESS: {Complaint.Status.RESOLVED},
+    Complaint.Status.RESOLVED: set(),
+}
+
+
+class ComplaintStatusHistory(models.Model):
+    """One row per status change, shown to the student as a timeline (AC-F-031)."""
+
+    complaint = models.ForeignKey(Complaint, on_delete=models.CASCADE, related_name="history")
+    old_status = models.CharField(max_length=12, choices=Complaint.Status.choices, blank=True)
+    new_status = models.CharField(max_length=12, choices=Complaint.Status.choices)
+    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL)
+    changed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["changed_at", "pk"]
+
+    def __str__(self):
+        return f"{self.complaint.ticket_id}: {self.old_status or '-'} -> {self.new_status}"
