@@ -99,8 +99,8 @@ def test_admin_dashboard_shows_occupancy_numbers(client, admin, monkeypatch):
         ),
         (
             User.Role.WARDEN,
-            ("/fees/structures/",),
-            ("/fees/my/", "/complaints/", "/allocation/", "/reports/"),
+            ("/fees/structures/", "/reports/"),
+            ("/fees/my/", "/complaints/", "/allocation/"),
         ),
     ],
 )
