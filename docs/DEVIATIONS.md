@@ -10,5 +10,6 @@ Deliverables Part-2 (2i) requires deviations to be documented and explained at t
 | D4 | SAD ADR-03 | PostgreSQL in every environment incl. local dev | PostgreSQL in CI and Docker Compose; SQLite fallback for quick local runs when `POSTGRES_DB` is unset | Lets every member run the app without Docker. CI still enforces PostgreSQL behaviour |
 | D5 | SAD 3.6 | Python 3.11 | Python 3.12 | Current stable version on team machines; no API differences for Django 5.1 |
 | D6 | SAD 3.4 (Nginx/Gunicorn) | Staging VM behind Nginx + Gunicorn with TLS | Demo runs on Django dev server / Docker Compose | No staging VM within the timeline; HTTPS settings covered by HMS-SR-001 settings and `check --deploy` |
+| D7 | Deliverables 2g/2h, 3b | Separate Sprint 1 demo video (HMS-20, 1 min) and Sprint 2 demo video (HMS-37, 2 min) | One combined final demo video (HMS-37, ~3 min) covering both sprints; HMS-20 closed as merged into HMS-37 and its story point moved to HMS-37 | Team decision: Sprint 1 finished late (D3), so a separate Sprint 1 recording would show an incomplete build days before the final one |
 
 <!-- Add a row whenever your PR differs from what the SRS/SAD/STP says. -->

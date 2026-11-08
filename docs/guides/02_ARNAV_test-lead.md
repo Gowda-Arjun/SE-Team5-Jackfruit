@@ -6,8 +6,8 @@ Read `00_TEAM_WORKFLOW_read_first.md` first.
 1. Create the backlog (issues, milestones, Project fields).
 2. Add CI (HMS-02).
 3. **Approve Arjun's own PRs** (he can't approve his own).
-4. Commit your already-built features: **Sprint 1** HMS-02, 18, 19, 03, 20 · **Sprint 2** HMS-31, 34, 32, 33, 35, 36, 37.
-5. Record both demo videos and own the final RTM.
+4. Commit your already-built features: **Sprint 1** HMS-02, 18, 19, 03 · **Sprint 2** HMS-31, 34, 32, 33, 35, 36, 37 (HMS-20 is merged into HMS-37).
+5. Record the combined final demo video and own the final RTM.
 
 **Good news:** all your code is already written and tested. On real PostgreSQL every PR applied in order passes lint, the migration check and the tests. Each PR is ready to copy from:
 
@@ -106,14 +106,13 @@ On GitHub: **Compare & pull request** → title `[HMS-xx] …` → description m
 | 2 | **HMS-18** (#18) audit log | `hms-18-audit-log` | – | `audit` | `HMS-18: append-only audit log with write_audit() and PostgreSQL trigger` |
 | 3 | **HMS-19** (#19) raise complaint | `hms-19-raise-complaint` | – | `complaints` | `HMS-19: students raise complaints with ticket id and safe photo upload` |
 | 4 | **HMS-03** (#3) seed data | `hms-03-seed-demo` | – | `core/management core/tests/test_seed_demo.py` | `HMS-03: seed_demo command with synthetic users, rooms and fees` |
-| 5 | **HMS-20** (#20) Sprint 1 video | `hms-20-sprint1-video` | – | `docs/SPRINT_1_REVIEW.md docs/videos/sprint1_demo.mp4` | `HMS-20: Sprint 1 demo video and review` |
 
 Notes:
 - **HMS-02** is the first PR that runs CI. If `test` goes red, open Details and send me or the team the error. After it merges, Arjun turns on branch protection.
 - **HMS-18 goes in as early as possible.** Arjun's `allocate_room` calls `write_audit`.
 - Its `0002_immutable_trigger` migration only does anything on PostgreSQL (CI). Locally on SQLite it's skipped, which is expected.
 - **HMS-03:** rooms and fees are seeded automatically once Arjun's and Armaan's models are merged. Before that, the command prints "skipped" for them.
-- **HMS-20:** do it last (Part E).
+- **HMS-20** is merged into HMS-37 (one combined video, see DEVIATIONS D7). There is no separate Sprint 1 video PR.
 
 ---
 
@@ -127,7 +126,7 @@ Notes:
 | 4 | **HMS-33** (#33) CSV/PDF export | `hms-33-report-export` | Add the line from `ARNAV_PRS\HMS-33\ADD_TO_requirements.txt.txt` (`reportlab>=4.2`) at the **end** of `requirements.txt`, then `pip install -r requirements.txt` | `reports requirements.txt` | `HMS-33: CSV and PDF export of reports (ReportLab)` |
 | 5 | **HMS-35** (#35) audit retention | `hms-35-audit-retention` | Paste `ARNAV_PRS\HMS-35\PASTE_AT_END_OF_config_settings.py.txt` at the **end** of `config\settings.py` | `audit config/settings.py` | `HMS-35: 3-year audit retention with archive and restore commands` |
 | 6 | **HMS-36** (#36) final docs | `hms-36-final-docs` | Append the rows in `ARNAV_PRS\HMS-36\ADD_ROWS_TO_docs_DEVIATIONS.md.txt` to the table in `docs\DEVIATIONS.md` (just above the `<!-- Add a row… -->` comment) | `docs/RTM.md docs/DEVIATIONS.md` | `HMS-36: final RTM and deviations` |
-| 7 | **HMS-37** (#37) Sprint 2 video | `hms-37-sprint2-video` | – | `docs/SPRINT_2_REVIEW.md docs/videos/sprint2_demo.mp4` | `HMS-37: Sprint 2 demo video and final review` |
+| 7 | **HMS-37** (#37) final demo video (both sprints) | `hms-37-final-demo-video` | – | `docs/SPRINT_1_REVIEW.md docs/SPRINT_2_REVIEW.md docs/videos/final_demo.mp4` | `HMS-37: combined final demo video and sprint reviews` |
 
 Notes:
 - **Shared files** (`config\settings.py`, `requirements.txt`, `docs\DEVIATIONS.md`): **never overwrite them.** Only append the snippet, because teammates add their own lines too. If GitHub reports a conflict, follow Section 5 of the shared guide ("Accept Both").
@@ -137,7 +136,7 @@ Notes:
 
 ---
 
-## PART E: Demo videos
+## PART E: Final demo video (HMS-37, also covers HMS-20)
 
 **Before recording:**
 ```powershell
@@ -150,7 +149,9 @@ python manage.py runserver
 ```
 Record with **Win + Alt + R** (Xbox Game Bar) or OBS. Use a browser window at a normal size. Log in as the seeded `admin`, `warden` and `student01` (password at the top of `core/management/commands/seed_demo.py`).
 
-**Sprint 1, about 60 seconds (`docs/videos/sprint1_demo.mp4`):**
+One continuous recording, about 3 minutes, saved as `docs/videos/final_demo.mp4`.
+
+**Part 1: Sprint 1 flow (about 60 seconds):**
 1. Register a new student (Arjav's page) → log in → empty student dashboard.
 2. Log out → log in as **admin** → blocks/rooms page → student list.
 3. Allocate `student01` to a room → success. Try a full room → "no free beds" error.
@@ -158,7 +159,7 @@ Record with **Win + Alt + R** (Xbox Game Bar) or OBS. Use a browser window at a 
 5. Log in as **student01** → My room (with roommates) → fee statement → raise a complaint (with a photo) → it appears as Open.
 6. As the student, open `/reports/` in the address bar → **403**.
 
-**Sprint 2, about 2 minutes (`docs/videos/sprint2_demo.mp4`):** the Sprint 1 flow quickly, then:
+**Part 2: Sprint 2 flow (about 2 minutes), in the same recording:**
 1. OTP password reset.
 2. Room change request → approved.
 3. Pay fees through the sandbox → receipt PDF.
@@ -166,7 +167,7 @@ Record with **Win + Alt + R** (Xbox Game Bar) or OBS. Use a browser window at a 
 5. Reports: occupancy and defaulters → Export CSV and PDF.
 6. Admin → Audit logs (read-only).
 
-**Committing the video:** keep it under **25 MB** (use HandBrake's "Fast 720p30" if it's bigger). Create the folder `docs\videos\` and put the file there. Then fill in the review file you copied from `ARNAV_PRS\HMS-20\files` (or HMS-37): tick the items done and add the points. Then follow the Part B recipe with the paths from the tables. If the video is over 100 MB, upload it to YouTube (unlisted) or Google Drive and put the link in the review file and README instead.
+**Committing the video:** keep it under **25 MB** (use HandBrake's "Fast 720p30" if it's bigger). Create the folder `docs\videos\` and put the file there. Then fill in both review files (`SPRINT_1_REVIEW.md` from `ARNAV_PRS\HMS-20\files` and `SPRINT_2_REVIEW.md` from `ARNAV_PRS\HMS-37\files`): point both at `videos/final_demo.mp4`, tick the items done and add the points. Then follow the Part B recipe with the paths from the tables. If the video is over 100 MB, upload it to YouTube (unlisted) or Google Drive and put the link in the review file and README instead.
 
 ---
 
