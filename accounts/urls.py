@@ -2,6 +2,7 @@ from django.contrib.auth import views as auth_views
 from django.urls import path
 
 from . import views
+from .password_reset_views import forgot_password, reset_password
 
 app_name = "accounts"
 
@@ -21,4 +22,6 @@ urlpatterns = [
         views.profile,
         name="profile",
     ),
+    path("forgot-password/", forgot_password, name="forgot_password"),
+    path("reset-password/", reset_password, name="reset_password"),
 ]

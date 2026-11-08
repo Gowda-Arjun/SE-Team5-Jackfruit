@@ -1,5 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.conf import settings
+from django.utils import timezone
 
 
 class User(AbstractUser):
@@ -48,3 +50,20 @@ class StudentProfile(models.Model):
 
     def __str__(self):
         return f"{self.full_name} ({self.user.roll_number or self.user.username})"
+
+
+# HMS-21: Password reset OTP records (hashed OTP only; never store raw OTP).
+
+class PasswordResetOTP(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="password_reset_otps")
+    otp_hash = models.CharField(max_length=128)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    used_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        indexes = [models.Index(fields=["user", "expires_at"])]
+
+    @property
+    def is_valid(self):
+        return self.used_at is None and timezone.now() < self.expires_at
