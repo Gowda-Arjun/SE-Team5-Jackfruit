@@ -120,3 +120,22 @@ SESSION_COOKIE_HTTPONLY = True
 # Audit log retention (HMS-NF-004): keep at least 3 years; older rows are exported by
 # `python manage.py archive_audit` and can be restored with `restore_audit`.
 AUDIT_RETENTION_DAYS = 3 * 365
+
+# Application logging: personal data (emails, phone numbers) is masked in every log line
+# (HMS-NF-003, SAD 4.4). Passwords, OTPs, tokens and card data are never logged at all.
+# Django's own loggers are routed through the same masked handler so request lines
+# (e.g. a search for an email address) are masked too.
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "filters": {"mask_pii": {"()": "core.log_filters.MaskPIIFilter"}},
+    "formatters": {"plain": {"format": "%(asctime)s %(levelname)s %(name)s %(message)s"}},
+    "handlers": {
+        "console": {"class": "logging.StreamHandler", "filters": ["mask_pii"], "formatter": "plain"},
+    },
+    "loggers": {
+        "django": {"handlers": ["console"], "level": "INFO", "propagate": False},
+        "django.server": {"handlers": ["console"], "level": "INFO", "propagate": False},
+    },
+    "root": {"handlers": ["console"], "level": os.environ.get("DJANGO_LOG_LEVEL", "INFO")},
+}

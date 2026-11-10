@@ -1,5 +1,8 @@
+from pathlib import Path
+
 from django.contrib import messages
 from django.core.paginator import Paginator
+from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
@@ -66,3 +69,22 @@ def complaint_update_status(request, ticket_id):
     except InvalidTransition:
         messages.error(request, "This status change is not allowed.")
     return redirect("complaints:queue")
+
+
+@role_required(User.Role.STUDENT, *STAFF_ROLES)
+def complaint_photo(request, ticket_id):
+    """Serve a complaint photo only to its owner or to staff who may see the ticket (HMS-NF-003, TC-Sec-09).
+
+    Files live outside the web root and are always sent as a download, never rendered or executed.
+    """
+    if request.user.role == User.Role.STUDENT:
+        qs = Complaint.objects.filter(student=request.user)
+    else:
+        qs = staff_queryset(request.user)
+    complaint = get_object_or_404(qs, ticket_id=ticket_id)
+    if not complaint.photo:
+        raise Http404
+    response = FileResponse(complaint.photo.open("rb"), as_attachment=True,
+                            filename=f"{complaint.ticket_id}{Path(complaint.photo.name).suffix}")
+    response["X-Content-Type-Options"] = "nosniff"
+    return response
