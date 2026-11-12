@@ -120,3 +120,17 @@ SESSION_COOKIE_HTTPONLY = True
 # Audit log retention (HMS-NF-004): keep at least 3 years; older rows are exported by
 # `python manage.py archive_audit` and can be restored with `restore_audit`.
 AUDIT_RETENTION_DAYS = 3 * 365
+# HMS-23: HTTPS-only security settings
+# Enabled only when DEBUG=False (production).
+
+SECURE_SSL_REDIRECT = not DEBUG
+
+SECURE_HSTS_SECONDS = 31536000 if not DEBUG else 0
+SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
+SECURE_HSTS_PRELOAD = not DEBUG
+
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_REFERRER_POLICY = "same-origin"
