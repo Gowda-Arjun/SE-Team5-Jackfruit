@@ -391,11 +391,7 @@ def create_room_change_request(student, reason, preferred_room=None):
 def approve_room_change_request(actor, request_id, preferred_room=None):
     """Approve a room change request atomically, reallocating student and logging audit (HMS-F-013)."""
     with transaction.atomic():
-        req = (
-            RoomChangeRequest.objects.select_for_update()
-            .select_related("student", "current_room", "preferred_room")
-            .get(pk=request_id)
-        )
+        req = RoomChangeRequest.objects.select_for_update().get(pk=request_id)
         if req.status != RoomChangeRequest.Status.PENDING:
             raise InvalidRequestState(
                 f"Cannot approve request with status '{req.status}'. Only PENDING requests can be decided."
@@ -430,11 +426,7 @@ def approve_room_change_request(actor, request_id, preferred_room=None):
 def reject_room_change_request(actor, request_id):
     """Reject a room change request atomically and record audit log (HMS-F-013)."""
     with transaction.atomic():
-        req = (
-            RoomChangeRequest.objects.select_for_update()
-            .select_related("student", "current_room")
-            .get(pk=request_id)
-        )
+        req = RoomChangeRequest.objects.select_for_update().get(pk=request_id)
         if req.status != RoomChangeRequest.Status.PENDING:
             raise InvalidRequestState(
                 f"Cannot reject request with status '{req.status}'. Only PENDING requests can be decided."
