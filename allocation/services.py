@@ -2,11 +2,12 @@ import datetime
 
 from django.db import transaction
 from django.db.models import Case, IntegerField, Sum, Value, When
+from django.utils import timezone
 
 from audit.models import AuditLog
 from audit.services import write_audit
 
-from .models import Allocation, Block, Room
+from .models import Allocation, Block, Room, RoomChangeRequest
 
 
 class AllocationError(Exception):
@@ -26,6 +27,26 @@ class GenderPolicyMismatch(AllocationError):
 
 class RoomFull(AllocationError):
     """Raised when room occupancy has reached capacity."""
+    pass
+
+
+class RoomChangeError(AllocationError):
+    """Base error for room change request operations."""
+    pass
+
+
+class NoActiveAllocation(RoomChangeError):
+    """Raised when student has no active allocation to request change from."""
+    pass
+
+
+class DuplicatePendingRequest(RoomChangeError):
+    """Raised when student already has a pending room change request."""
+    pass
+
+
+class InvalidRequestState(RoomChangeError):
+    """Raised when acting on a non-pending room change request."""
     pass
 
 
@@ -341,3 +362,97 @@ def allocate_room(student, room, actor):
         raise exc
 
     return new_allocation
+
+
+def create_room_change_request(student, reason, preferred_room=None):
+    """Create a new room change request for a student with an active allocation (HMS-F-013)."""
+    active_allocation = (
+        Allocation.objects.filter(student=student, status=Allocation.Status.ACTIVE)
+        .select_related("room")
+        .first()
+    )
+    if not active_allocation:
+        raise NoActiveAllocation("You must have an active room allocation to request a room change.")
+
+    if RoomChangeRequest.objects.filter(student=student, status=RoomChangeRequest.Status.PENDING).exists():
+        raise DuplicatePendingRequest("You already have a pending room change request.")
+
+    with transaction.atomic():
+        request_obj = RoomChangeRequest.objects.create(
+            student=student,
+            current_room=active_allocation.room,
+            preferred_room=preferred_room,
+            reason=reason,
+            status=RoomChangeRequest.Status.PENDING,
+        )
+        return request_obj
+
+
+def approve_room_change_request(actor, request_id, preferred_room=None):
+    """Approve a room change request atomically, reallocating student and logging audit (HMS-F-013)."""
+    with transaction.atomic():
+        req = (
+            RoomChangeRequest.objects.select_for_update()
+            .select_related("student", "current_room", "preferred_room")
+            .get(pk=request_id)
+        )
+        if req.status != RoomChangeRequest.Status.PENDING:
+            raise InvalidRequestState(
+                f"Cannot approve request with status '{req.status}'. Only PENDING requests can be decided."
+            )
+
+        target_room = preferred_room or req.preferred_room
+        if not target_room:
+            raise RoomChangeError("A destination room must be specified to approve the room change.")
+
+        # allocate_room ends old allocation, creates new active allocation, adjusts occupancies
+        allocate_room(req.student, target_room, actor)
+
+        req.status = RoomChangeRequest.Status.APPROVED
+        req.decided_by = actor
+        req.decided_at = timezone.now()
+        req.save(update_fields=["status", "decided_by", "decided_at"])
+
+        write_audit(
+            actor,
+            "ROOM_CHANGE_APPROVED",
+            target=req,
+            outcome=AuditLog.Outcome.SUCCESS,
+            details={
+                "student": req.student.username,
+                "from_room": req.current_room.number,
+                "to_room": target_room.number,
+            },
+        )
+        return req
+
+
+def reject_room_change_request(actor, request_id):
+    """Reject a room change request atomically and record audit log (HMS-F-013)."""
+    with transaction.atomic():
+        req = (
+            RoomChangeRequest.objects.select_for_update()
+            .select_related("student", "current_room")
+            .get(pk=request_id)
+        )
+        if req.status != RoomChangeRequest.Status.PENDING:
+            raise InvalidRequestState(
+                f"Cannot reject request with status '{req.status}'. Only PENDING requests can be decided."
+            )
+
+        req.status = RoomChangeRequest.Status.REJECTED
+        req.decided_by = actor
+        req.decided_at = timezone.now()
+        req.save(update_fields=["status", "decided_by", "decided_at"])
+
+        write_audit(
+            actor,
+            "ROOM_CHANGE_REJECTED",
+            target=req,
+            outcome=AuditLog.Outcome.SUCCESS,
+            details={
+                "student": req.student.username,
+                "current_room": req.current_room.number,
+            },
+        )
+        return req

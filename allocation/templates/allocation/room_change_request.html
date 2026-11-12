@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block title %}Request Room Change{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-md-10 col-lg-8">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h1 class="h3 mb-0">Room Change Request</h1>
+      <a href="{% url 'allocation:my_room' %}" class="btn btn-outline-secondary btn-sm">Back to My Room</a>
+    </div>
+
+    {% if not active_allocation %}
+      <div class="alert alert-warning py-4 text-center shadow-sm" role="alert">
+        <h2 class="h5 alert-heading mb-2">No Active Room Allocation</h2>
+        <p class="mb-0">You cannot request a room change because you do not have an active room allocation.</p>
+      </div>
+    {% elif pending_request %}
+      <div class="alert alert-info shadow-sm mb-4" role="alert">
+        <h2 class="h5 alert-heading">Pending Request in Progress</h2>
+        <p>You already have a pending room change request submitted on {{ pending_request.created_at|date:"d M Y, H:i" }}.</p>
+        <hr>
+        <p class="mb-1"><strong>Current Room:</strong> {{ pending_request.current_room.block.name }} Room {{ pending_request.current_room.number }}</p>
+        {% if pending_request.preferred_room %}
+          <p class="mb-1"><strong>Preferred Room:</strong> {{ pending_request.preferred_room.block.name }} Room {{ pending_request.preferred_room.number }}</p>
+        {% endif %}
+        <p class="mb-0"><strong>Reason:</strong> {{ pending_request.reason }}</p>
+      </div>
+    {% else %}
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white py-3">
+          <h2 class="h5 mb-0">Submit New Request</h2>
+        </div>
+        <div class="card-body">
+          <div class="alert alert-light border mb-3">
+            <strong>Current Allocation:</strong> {{ active_allocation.room.block.name }} - Room {{ active_allocation.room.number }}
+            ({{ active_allocation.room.get_room_type_display }})
+          </div>
+
+          <form method="post" novalidate>
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+              <div class="alert alert-danger" role="alert">
+                {% for error in form.non_field_errors %}{{ error }}<br>{% endfor %}
+              </div>
+            {% endif %}
+
+            <div class="mb-3">
+              <label for="id_preferred_room" class="form-label">Preferred Room (Optional)</label>
+              {{ form.preferred_room }}
+              {% if form.preferred_room.errors %}
+                <div class="text-danger small mt-1">{{ form.preferred_room.errors.0 }}</div>
+              {% endif %}
+              <div class="form-text">Select a preferred room matching your block gender policy or leave blank.</div>
+            </div>
+
+            <div class="mb-3">
+              <label for="id_reason" class="form-label">Reason for Request <span class="text-danger">*</span></label>
+              {{ form.reason }}
+              {% if form.reason.errors %}
+                <div class="text-danger small mt-1">{{ form.reason.errors.0 }}</div>
+              {% endif %}
+            </div>
+
+            <div class="d-flex justify-content-end">
+              <button type="submit" class="btn btn-primary">Submit Request</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    {% endif %}
+
+    {% if past_requests %}
+      <div class="card shadow-sm">
+        <div class="card-header bg-white py-3">
+          <h2 class="h5 mb-0">Request History</h2>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th scope="col">Date</th>
+                  <th scope="col">From Room</th>
+                  <th scope="col">Preferred Room</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Decided Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for req in past_requests %}
+                  <tr>
+                    <td>{{ req.created_at|date:"d M Y" }}</td>
+                    <td>{{ req.current_room.block.name }} {{ req.current_room.number }}</td>
+                    <td>
+                      {% if req.preferred_room %}
+                        {{ req.preferred_room.block.name }} {{ req.preferred_room.number }}
+                      {% else %}
+                        <span class="text-muted">Any</span>
+                      {% endif %}
+                    </td>
+                    <td>
+                      {% if req.status == "PENDING" %}
+                        <span class="badge bg-warning text-dark">Pending</span>
+                      {% elif req.status == "APPROVED" %}
+                        <span class="badge bg-success">Approved</span>
+                      {% elif req.status == "REJECTED" %}
+                        <span class="badge bg-danger">Rejected</span>
+                      {% endif %}
+                    </td>
+                    <td>{{ req.decided_at|date:"d M Y"|default:"-" }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
