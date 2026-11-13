@@ -3,3 +3,4 @@ psycopg[binary]>=3.2
 pytest>=8
 pytest-django>=4.9
 flake8>=7
+reportlab>=4.2
