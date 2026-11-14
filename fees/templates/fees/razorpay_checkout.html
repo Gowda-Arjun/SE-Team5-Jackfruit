@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Pay hostel fees{% endblock %}
+{% block content %}
+<h1 class="h3 mb-3">Pay hostel fees</h1>
+<p>Amount: {{ payment.amount }}</p>
+<button id="pay-button" class="btn btn-primary" type="button">Continue to Razorpay</button>
+<p id="checkout-status" class="mt-3" role="status"></p>
+{{ checkout_options|json_script:"checkout-options" }}
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+  const options = JSON.parse(document.getElementById("checkout-options").textContent);
+  options.handler = function () {
+    document.getElementById("checkout-status").textContent =
+      "Payment submitted. Confirmation will follow after the gateway verifies it.";
+  };
+  document.getElementById("pay-button").addEventListener("click", function () {
+    new Razorpay(options).open();
+  });
+</script>
+{% endblock %}

@@ -16,6 +16,7 @@
           <th scope="col">Amount paid</th>
           <th scope="col">Balance</th>
           <th scope="col">Due date</th>
+          <th scope="col"><span class="visually-hidden">Payment</span></th>
         </tr>
       </thead>
       <tbody>
@@ -27,6 +28,12 @@
             <td>{{ statement.amount_paid }}</td>
             <td>{{ statement.balance }}</td>
             <td>{{ statement.due_date }}</td>
+            <td>
+              <form method="post" action="{% url 'fees:pay' statement.pk %}">
+                {% csrf_token %}
+                <button class="btn btn-sm btn-primary" type="submit">Pay now</button>
+              </form>
+            </td>
           </tr>
         {% endfor %}
       </tbody>
