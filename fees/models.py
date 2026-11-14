@@ -96,3 +96,19 @@ class Payment(models.Model):
 
     def __str__(self):
         return f"{self.statement} {self.amount} ({self.get_status_display()})"
+
+
+class Receipt(models.Model):
+    payment = models.OneToOneField(
+        Payment,
+        on_delete=models.PROTECT,
+        related_name="receipt",
+    )
+    receipt_no = models.CharField(max_length=32, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return self.receipt_no

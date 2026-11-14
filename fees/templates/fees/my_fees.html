@@ -33,6 +33,10 @@
                 {% csrf_token %}
                 <button class="btn btn-sm btn-primary" type="submit">Pay now</button>
               </form>
+              {% for payment in statement.payments.all %}
+                <a class="btn btn-sm btn-outline-secondary mt-1"
+                   href="{% url 'fees:receipt' payment.pk %}">Download receipt</a>
+              {% endfor %}
             </td>
           </tr>
         {% endfor %}

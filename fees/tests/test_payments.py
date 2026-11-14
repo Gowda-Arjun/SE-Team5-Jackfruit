@@ -12,7 +12,7 @@ from django.test import override_settings
 from accounts.models import User
 from audit.models import AuditLog
 from fees.gateway import RazorpayGateway
-from fees.models import FeeStatement, Payment
+from fees.models import FeeStatement, Payment, Receipt
 
 
 @pytest.fixture
@@ -78,6 +78,8 @@ def test_successful_webhook_updates_payment_and_statement(client, payment, state
     assert payment.gateway_txn_id == "mock_test_transaction"
     assert statement.amount_paid == Decimal("25000.00")
     assert AuditLog.objects.filter(action="PAYMENT_SUCCEEDED").count() == 1
+    receipt = Receipt.objects.get(payment=payment)
+    assert receipt.receipt_no == f"RCPT-{payment.pk:06d}"
 
 
 def test_webhook_rejects_bad_signature_and_audits_denial(client, payment):
@@ -100,6 +102,7 @@ def test_replayed_success_webhook_credits_only_once(client, payment, statement):
     statement.refresh_from_db()
     assert statement.amount_paid == Decimal("25000.00")
     assert AuditLog.objects.filter(action="PAYMENT_SUCCEEDED").count() == 1
+    assert Receipt.objects.filter(payment=payment).count() == 1
 
 
 def test_webhook_rejects_amount_mismatch(client, payment, statement):
@@ -240,3 +243,68 @@ def test_webhook_without_order_id_does_not_match_null_order(client, statement):
     statement.refresh_from_db()
     assert payment.status == Payment.Status.PENDING
     assert statement.amount_paid == Decimal("5000.00")
+
+
+def test_receipt_download_for_owner_returns_pdf(client, student, payment):
+    client.force_login(student)
+    post_webhook(client, payment)
+
+    response = client.get(
+        reverse("fees:receipt", args=[payment.pk])
+    )
+
+    assert response.status_code == 200
+    assert response["Content-Type"] == "application/pdf"
+    assert response["Content-Disposition"].endswith(
+        f'"{Receipt.objects.get(payment=payment).receipt_no}.pdf"'
+    )
+    assert response.content.startswith(b"%PDF")
+
+
+def test_another_student_cannot_download_receipt(client, payment):
+    post_webhook(client, payment)
+    other_student = User.objects.create_user(
+        "other_payment_student",
+        email="other-payment-student@pes.edu",
+        password="test-password-123",
+        role=User.Role.STUDENT,
+    )
+    client.force_login(other_student)
+
+    response = client.get(reverse("fees:receipt", args=[payment.pk]))
+
+    assert response.status_code == 404
+
+
+def test_pending_payment_has_no_downloadable_receipt(client, student, payment):
+    client.force_login(student)
+
+    response = client.get(reverse("fees:receipt", args=[payment.pk]))
+
+    assert response.status_code == 404
+
+
+def test_warden_can_download_receipt(client, payment):
+    post_webhook(client, payment)
+    warden = User.objects.create_user(
+        "receipt_warden",
+        email="receipt-warden@pes.edu",
+        password="test-password-123",
+        role=User.Role.WARDEN,
+    )
+    client.force_login(warden)
+
+    response = client.get(reverse("fees:receipt", args=[payment.pk]))
+
+    assert response.status_code == 200
+    assert response.content.startswith(b"%PDF")
+
+
+def test_my_fees_shows_successful_payment_receipt(client, student, payment):
+    client.force_login(student)
+    post_webhook(client, payment)
+
+    response = client.get(reverse("fees:my_fees"))
+
+    assert response.status_code == 200
+    assert b"Download receipt" in response.content
