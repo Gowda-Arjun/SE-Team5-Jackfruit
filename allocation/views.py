@@ -39,18 +39,23 @@ from .services import (
 
 @role_required(User.Role.ADMIN, User.Role.WARDEN)
 def room_list(request):
-    """List rooms with availability summary by block."""
+    """List rooms with availability summary by block, paginated (25 per page)."""
     block_filter = request.GET.get("block", "")
-    rooms = Room.objects.select_related("block").order_by("block__name", "floor", "number")
+    rooms_qs = Room.objects.select_related("block").order_by("block__name", "floor", "number")
     if block_filter:
-        rooms = rooms.filter(block__name=block_filter)
+        rooms_qs = rooms_qs.filter(block__name=block_filter)
+
+    paginator = Paginator(rooms_qs, 25)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
 
     summary = get_block_availability_summary()
     return render(
         request,
         "allocation/room_list.html",
         {
-            "rooms": rooms,
+            "rooms": page_obj,
+            "page_obj": page_obj,
             "block_summary": summary,
             "selected_block": block_filter,
             "blocks": Block.objects.all().order_by("name"),
@@ -431,13 +436,19 @@ def room_change_queue(request):
 
         return redirect("allocation:room_change_queue")
 
-    pending_requests = (
+    pending_requests_qs = (
         RoomChangeRequest.objects.filter(status=RoomChangeRequest.Status.PENDING)
         .select_related("student__profile", "current_room__block", "preferred_room__block")
         .order_by("created_at")
     )
+    paginator = Paginator(pending_requests_qs, 25)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
     return render(
         request,
         "allocation/room_change_queue.html",
-        {"pending_requests": pending_requests},
+        {
+            "pending_requests": page_obj,
+            "page_obj": page_obj,
+        },
     )

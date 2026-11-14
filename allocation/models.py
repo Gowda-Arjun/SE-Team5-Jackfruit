@@ -33,7 +33,7 @@ class Room(models.Model):
     room_type = models.CharField(max_length=8, choices=RoomType.choices)
     capacity = models.PositiveIntegerField()
     occupancy = models.PositiveIntegerField(default=0)
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=True, db_index=True)
 
     class Meta:
         ordering = ["block__name", "floor", "number"]
@@ -72,6 +72,7 @@ class Allocation(models.Model):
         max_length=8,
         choices=Status.choices,
         default=Status.ACTIVE,
+        db_index=True,
     )
 
     class Meta:
@@ -118,6 +119,7 @@ class RoomChangeRequest(models.Model):
         max_length=10,
         choices=Status.choices,
         default=Status.PENDING,
+        db_index=True,
     )
     created_at = models.DateTimeField(auto_now_add=True)
     decided_by = models.ForeignKey(
