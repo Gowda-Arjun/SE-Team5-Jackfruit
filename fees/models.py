@@ -61,3 +61,38 @@ class FeeStatement(models.Model):
 
     def __str__(self):
         return f"{self.student} {self.term} fee statement"
+
+
+class Payment(models.Model):
+    class Status(models.TextChoices):
+        PENDING = "PENDING", "Pending"
+        SUCCESS = "SUCCESS", "Success"
+        FAILED = "FAILED", "Failed"
+
+    statement = models.ForeignKey(
+        FeeStatement,
+        on_delete=models.PROTECT,
+        related_name="payments",
+    )
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    status = models.CharField(
+        max_length=7,
+        choices=Status.choices,
+        default=Status.PENDING,
+    )
+    gateway_order_id = models.CharField(
+        max_length=100,
+        unique=True,
+        null=True,
+        blank=True,
+        default=None,
+    )
+    gateway_txn_id = models.CharField(max_length=128, unique=True, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.statement} {self.amount} ({self.get_status_display()})"

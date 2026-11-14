@@ -134,3 +134,9 @@ CSRF_COOKIE_SECURE = not DEBUG
 
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_REFERRER_POLICY = "same-origin"
+
+# HMS-F-021: payment gateway (mock by default; "razorpay" uses test-mode keys from .env)
+PAYMENT_GATEWAY = os.environ.get("PAYMENT_GATEWAY", "mock")
+PAYMENT_WEBHOOK_SECRET = os.environ.get("PAYMENT_WEBHOOK_SECRET", "dev-webhook-secret")
+RAZORPAY_KEY_ID = os.environ.get("RAZORPAY_KEY_ID", "")
+RAZORPAY_KEY_SECRET = os.environ.get("RAZORPAY_KEY_SECRET", "")
