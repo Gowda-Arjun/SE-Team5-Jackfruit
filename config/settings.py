@@ -120,6 +120,26 @@ SESSION_COOKIE_HTTPONLY = True
 # Audit log retention (HMS-NF-004): keep at least 3 years; older rows are exported by
 # `python manage.py archive_audit` and can be restored with `restore_audit`.
 AUDIT_RETENTION_DAYS = 3 * 365
+# HMS-23: HTTPS-only security settings
+# Enabled only when DEBUG=False (production).
+
+SECURE_SSL_REDIRECT = not DEBUG
+
+SECURE_HSTS_SECONDS = 31536000 if not DEBUG else 0
+SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
+SECURE_HSTS_PRELOAD = not DEBUG
+
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_REFERRER_POLICY = "same-origin"
+
+# HMS-F-021: payment gateway (mock by default; "razorpay" uses test-mode keys from .env)
+PAYMENT_GATEWAY = os.environ.get("PAYMENT_GATEWAY", "mock")
+PAYMENT_WEBHOOK_SECRET = os.environ.get("PAYMENT_WEBHOOK_SECRET", "dev-webhook-secret")
+RAZORPAY_KEY_ID = os.environ.get("RAZORPAY_KEY_ID", "")
+RAZORPAY_KEY_SECRET = os.environ.get("RAZORPAY_KEY_SECRET", "")
 
 # Application logging: personal data (emails, phone numbers) is masked in every log line
 # (HMS-NF-003, SAD 4.4). Passwords, OTPs, tokens and card data are never logged at all.

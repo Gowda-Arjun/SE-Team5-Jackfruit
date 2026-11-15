@@ -18,4 +18,6 @@ urlpatterns = [
     path("students/<int:pk>/deactivate/", views.student_deactivate, name="student_deactivate"),
     path("allocate/", views.allocate, name="allocate"),
     path("my-room/", views.my_room, name="my_room"),
+    path("room-change/", views.room_change_request, name="room_change_request"),
+    path("room-change-queue/", views.room_change_queue, name="room_change_queue"),
 ]

@@ -10,22 +10,27 @@ from core.decorators import role_required
 from .forms import (
     AllocationForm,
     BlockForm,
+    RoomChangeRequestForm,
     RoomForm,
     StudentCreateForm,
     StudentEditForm,
 )
-from .models import Allocation, Block, Room
+from .models import Allocation, Block, Room, RoomChangeRequest
 from .services import (
     GenderPolicyMismatch,
+    RoomChangeError,
     RoomFull,
     RoomInactive,
     allocate_room,
+    approve_room_change_request,
     create_block,
     create_room,
+    create_room_change_request,
     create_student,
     deactivate_room,
     deactivate_student,
     get_block_availability_summary,
+    reject_room_change_request,
     update_block,
     update_room,
     update_student,
@@ -331,4 +336,108 @@ def my_room(request):
             "allocation": allocation,
             "roommates": roommates,
         },
+    )
+
+
+@role_required(User.Role.STUDENT)
+def room_change_request(request):
+    """Student page to submit room change request and view status of past requests (HMS-F-013)."""
+    active_allocation = (
+        Allocation.objects.filter(student=request.user, status=Allocation.Status.ACTIVE)
+        .select_related("room__block")
+        .first()
+    )
+    pending_request = (
+        RoomChangeRequest.objects.filter(
+            student=request.user, status=RoomChangeRequest.Status.PENDING
+        )
+        .select_related("current_room__block", "preferred_room__block")
+        .first()
+    )
+    past_requests = (
+        RoomChangeRequest.objects.filter(student=request.user)
+        .select_related("current_room__block", "preferred_room__block", "decided_by")
+        .order_by("-created_at")
+    )
+
+    if request.method == "POST":
+        if not active_allocation:
+            messages.error(request, "You must have an active room allocation to request a room change.")
+            return redirect("allocation:room_change_request")
+
+        if pending_request:
+            messages.error(request, "You already have a pending room change request.")
+            return redirect("allocation:room_change_request")
+
+        form = RoomChangeRequestForm(request.POST, student=request.user)
+        if form.is_valid():
+            try:
+                create_room_change_request(
+                    student=request.user,
+                    reason=form.cleaned_data["reason"],
+                    preferred_room=form.cleaned_data["preferred_room"],
+                )
+                messages.success(request, "Room change request submitted successfully.")
+                return redirect("allocation:room_change_request")
+            except RoomChangeError as exc:
+                messages.error(request, str(exc))
+    else:
+        form = RoomChangeRequestForm(student=request.user)
+
+    return render(
+        request,
+        "allocation/room_change_request.html",
+        {
+            "form": form,
+            "active_allocation": active_allocation,
+            "pending_request": pending_request,
+            "past_requests": past_requests,
+        },
+    )
+
+
+@role_required(User.Role.ADMIN, User.Role.WARDEN)
+def room_change_queue(request):
+    """Warden/Admin queue listing PENDING room change requests with Approve/Reject actions (HMS-F-013)."""
+    if request.method == "POST":
+        request_id = request.POST.get("request_id")
+        action = request.POST.get("action")
+        preferred_room_id = request.POST.get("preferred_room_id")
+
+        target_room = None
+        if preferred_room_id:
+            target_room = get_object_or_404(Room, pk=preferred_room_id)
+
+        if action == "approve":
+            try:
+                approve_room_change_request(request.user, request_id, preferred_room=target_room)
+                messages.success(request, f"Room change request #{request_id} has been approved.")
+            except RoomFull:
+                messages.error(request, "This room has no free beds. Choose another room.")
+            except GenderPolicyMismatch:
+                messages.error(request, "This block is not available for this student.")
+            except RoomInactive:
+                messages.error(request, "This room is inactive. Choose an active room.")
+            except RoomChangeError as exc:
+                messages.error(request, f"Cannot approve request: {exc}")
+        elif action == "reject":
+            try:
+                reject_room_change_request(request.user, request_id)
+                messages.success(request, f"Room change request #{request_id} has been rejected.")
+            except RoomChangeError as exc:
+                messages.error(request, f"Cannot reject request: {exc}")
+        else:
+            messages.error(request, "Invalid action specified.")
+
+        return redirect("allocation:room_change_queue")
+
+    pending_requests = (
+        RoomChangeRequest.objects.filter(status=RoomChangeRequest.Status.PENDING)
+        .select_related("student__profile", "current_room__block", "preferred_room__block")
+        .order_by("created_at")
+    )
+    return render(
+        request,
+        "allocation/room_change_queue.html",
+        {"pending_requests": pending_requests},
     )

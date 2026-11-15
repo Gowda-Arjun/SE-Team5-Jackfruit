@@ -7,6 +7,9 @@
   <div class="col-12 col-md-10 col-lg-8">
     <div class="d-flex justify-content-between align-items-center mb-4">
       <h1 class="h3 mb-0">My Room Allocation</h1>
+      {% if allocation %}
+        <a href="{% url 'allocation:room_change_request' %}" class="btn btn-outline-primary btn-sm">Request Room Change</a>
+      {% endif %}
     </div>
 
     {% if allocation %}

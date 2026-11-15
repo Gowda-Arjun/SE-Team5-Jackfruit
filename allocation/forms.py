@@ -4,7 +4,7 @@ from django.db import models
 
 from accounts.models import StudentProfile, User
 
-from .models import Block, Room
+from .models import Allocation, Block, Room
 
 
 class BlockForm(forms.ModelForm):
@@ -186,5 +186,39 @@ class AllocationForm(forms.Form):
                 f"{r.block.name} Room {r.number} "
                 f"({r.get_room_type_display()}, Policy: {r.block.get_gender_policy_display()}, "
                 f"Free: {r.capacity - r.occupancy})"
+            )
+        )
+
+
+class RoomChangeRequestForm(forms.Form):
+    preferred_room = forms.ModelChoiceField(
+        queryset=Room.objects.filter(is_active=True).select_related("block").order_by("block__name", "number"),
+        required=False,
+        widget=forms.Select(attrs={"class": "form-select", "id": "id_preferred_room"}),
+        label="Preferred Room (Optional)",
+        empty_label="-- Any suitable room --",
+    )
+    reason = forms.CharField(
+        widget=forms.Textarea(attrs={"class": "form-control", "id": "id_reason", "rows": 3}),
+        label="Reason for Room Change",
+        required=True,
+    )
+
+    def __init__(self, *args, student=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if student and hasattr(student, "profile"):
+            gender = getattr(student.profile, "gender", None)
+            qs = Room.objects.filter(is_active=True)
+            if gender:
+                qs = qs.filter(block__gender_policy=gender)
+            current_alloc = Allocation.objects.filter(student=student, status=Allocation.Status.ACTIVE).first()
+            if current_alloc:
+                qs = qs.exclude(pk=current_alloc.room_id)
+            self.fields["preferred_room"].queryset = qs.select_related("block").order_by("block__name", "number")
+
+        self.fields["preferred_room"].label_from_instance = (
+            lambda r: (
+                f"{r.block.name} Room {r.number} "
+                f"({r.get_room_type_display()}, Free: {max(r.capacity - r.occupancy, 0)})"
             )
         )

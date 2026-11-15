@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Room Change Queue{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="h3 mb-1">Room Change Request Queue</h1>
+    <p class="text-muted mb-0">Review and decide pending room transfer requests from students.</p>
+  </div>
+  <a href="{% url 'allocation:room_list' %}" class="btn btn-outline-secondary btn-sm">Rooms List</a>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-header bg-white py-3">
+    <div class="d-flex justify-content-between align-items-center">
+      <h2 class="h5 mb-0">Pending Requests</h2>
+      <span class="badge bg-primary rounded-pill">{{ pending_requests|length }} Pending</span>
+    </div>
+  </div>
+  <div class="card-body p-0">
+    {% if pending_requests %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th scope="col">ID</th>
+              <th scope="col">Student</th>
+              <th scope="col">Current Room</th>
+              <th scope="col">Preferred Room</th>
+              <th scope="col">Reason</th>
+              <th scope="col">Requested At</th>
+              <th scope="col" class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for req in pending_requests %}
+              <tr>
+                <td>#{{ req.pk }}</td>
+                <td>
+                  <strong>{{ req.student.profile.full_name|default:req.student.username }}</strong>
+                  <div class="text-muted small">Roll: {{ req.student.roll_number|default:req.student.username }} · Gender: {{ req.student.profile.get_gender_display }}</div>
+                </td>
+                <td>
+                  <span class="badge bg-secondary">{{ req.current_room.block.name }} - Room {{ req.current_room.number }}</span>
+                </td>
+                <td>
+                  {% if req.preferred_room %}
+                    <span class="badge bg-info text-dark">
+                      {{ req.preferred_room.block.name }} - Room {{ req.preferred_room.number }}
+                    </span>
+                  {% else %}
+                    <span class="text-muted small">No specific preference</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <div class="small text-break" style="max-width: 250px;">{{ req.reason }}</div>
+                </td>
+                <td>{{ req.created_at|date:"d M Y, H:i" }}</td>
+                <td class="text-end">
+                  <div class="d-flex justify-content-end gap-2">
+                    <form method="post" class="d-inline">
+                      {% csrf_token %}
+                      <input type="hidden" name="request_id" value="{{ req.pk }}">
+                      <input type="hidden" name="action" value="approve">
+                      <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Approve room change for {{ req.student.username }}?');">
+                        Approve
+                      </button>
+                    </form>
+
+                    <form method="post" class="d-inline">
+                      {% csrf_token %}
+                      <input type="hidden" name="request_id" value="{{ req.pk }}">
+                      <input type="hidden" name="action" value="reject">
+                      <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Reject room change request #{{ req.pk }}?');">
+                        Reject
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="text-center py-5">
+        <p class="text-muted mb-0">No pending room change requests in the queue.</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

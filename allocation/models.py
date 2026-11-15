@@ -86,3 +86,58 @@ class Allocation(models.Model):
 
     def __str__(self):
         return f"{self.student.username} -> {self.room} ({self.status})"
+
+
+class RoomChangeRequest(models.Model):
+    """Student request for changing room allocation (HMS-F-013, TC-Alloc-04)."""
+
+    class Status(models.TextChoices):
+        PENDING = "PENDING", "Pending"
+        APPROVED = "APPROVED", "Approved"
+        REJECTED = "REJECTED", "Rejected"
+
+    student = models.ForeignKey(
+        "accounts.User",
+        on_delete=models.CASCADE,
+        related_name="room_change_requests",
+    )
+    current_room = models.ForeignKey(
+        Room,
+        on_delete=models.PROTECT,
+        related_name="change_requests_current",
+    )
+    preferred_room = models.ForeignKey(
+        Room,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="change_requests_preferred",
+    )
+    reason = models.TextField()
+    status = models.CharField(
+        max_length=10,
+        choices=Status.choices,
+        default=Status.PENDING,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    decided_by = models.ForeignKey(
+        "accounts.User",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="decided_room_changes",
+    )
+    decided_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["student"],
+                condition=models.Q(status="PENDING"),
+                name="unique_pending_room_change_request",
+            )
+        ]
+
+    def __str__(self):
+        return f"ChangeRequest #{self.pk} - {self.student.username} ({self.status})"
