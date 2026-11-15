@@ -1,5 +1,6 @@
 import io
 import json
+import logging
 import uuid
 from decimal import Decimal, InvalidOperation
 from hashlib import sha256
@@ -26,8 +27,8 @@ from audit.models import AuditLog
 from audit.services import write_audit
 from core.decorators import role_required
 
-from .forms import FeeStructureForm
-from .gateway import get_gateway
+from .forms import FeeStructureForm, ReconciliationForm
+from .gateway import PaymentGatewayUnavailable, get_gateway
 from .models import FeeStatement, FeeStructure, Payment, Receipt
 from .services import (
     CURRENT_TERM,
@@ -35,7 +36,10 @@ from .services import (
     NoFeeStructure,
     get_active_allocation,
     get_or_create_statement,
+    reconcile_payments,
 )
+
+logger = logging.getLogger(__name__)
 
 
 @role_required(User.Role.STUDENT)
@@ -375,6 +379,34 @@ def receipt(request, payment_id):
         f'attachment; filename="{receipt_record.receipt_no}.pdf"'
     )
     return response
+
+
+@role_required(User.Role.ADMIN, User.Role.WARDEN)
+def reconciliation(request):
+    form = ReconciliationForm(request.GET or None)
+    report, error = None, None
+    if form.is_bound and form.is_valid():
+        date_from = form.cleaned_data["date_from"]
+        date_to = form.cleaned_data["date_to"]
+        try:
+            ledger = get_gateway().fetch_ledger(date_from, date_to)
+        except PaymentGatewayUnavailable:
+            logger.exception(
+                "Payment ledger unavailable for %s through %s",
+                date_from,
+                date_to,
+            )
+            error = "Payment service is not available right now."
+        else:
+            report = reconcile_payments(date_from, date_to, ledger)
+
+    status = 400 if form.is_bound and not form.is_valid() else 200
+    return render(
+        request,
+        "fees/reconciliation.html",
+        {"form": form, "report": report, "error": error},
+        status=status,
+    )
 
 
 @role_required(User.Role.ADMIN, User.Role.WARDEN)
