@@ -20,6 +20,10 @@ class PaymentGateway:
         raise NotImplementedError
 
 
+class PaymentGatewayUnavailable(Exception):
+    """The payment provider could not return a ledger."""
+
+
 class MockGateway(PaymentGateway):
     def create_order(self, amount: Decimal, payment_id: int) -> tuple[str, str]:
         return (
@@ -36,7 +40,23 @@ class MockGateway(PaymentGateway):
         return hmac.compare_digest(expected, signature)
 
     def fetch_ledger(self, date_from: date, date_to: date) -> list[dict]:
-        return []
+        from .models import Payment
+
+        payments = Payment.objects.filter(
+            status=Payment.Status.SUCCESS,
+            gateway_order_id__isnull=False,
+            created_at__date__gte=date_from,
+            created_at__date__lte=date_to,
+        )
+        return [
+            {
+                "id": payment.gateway_txn_id,
+                "order_id": payment.gateway_order_id,
+                "amount": int(payment.amount * 100),
+                "status": "captured",
+            }
+            for payment in payments
+        ]
 
 
 class RazorpayGateway(PaymentGateway):
@@ -85,13 +105,18 @@ class RazorpayGateway(PaymentGateway):
 
         start = as_datetime(date_from)
         end = as_datetime(date_to, end_of_day=True)
-        result = self._client().payment.all(
-            {
-                "from": int(start.timestamp()),
-                "to": int(end.timestamp()),
-                "count": 100,
-            }
-        )
+        try:
+            result = self._client().payment.all(
+                {
+                    "from": int(start.timestamp()),
+                    "to": int(end.timestamp()),
+                    "count": 100,
+                }
+            )
+        except Exception as exc:
+            raise PaymentGatewayUnavailable(
+                "The payment provider could not return its ledger."
+            ) from exc
         return result["items"]
 
 
