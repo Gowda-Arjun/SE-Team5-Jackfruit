@@ -1,7 +1,7 @@
 # Sprint 1 Review: Team 5 HMS
 
 **Window:** 19-23 Oct 2026 (planned) · completed 28 Oct 2026 (see [DEVIATIONS](DEVIATIONS.md) D3)
-**Demo video:** [`docs/videos/final_demo.mp4`](videos/final_demo.mp4), Part 1 (0:00-1:20). One combined video covers both sprints (DEVIATIONS D7).
+**Demo video:** [`docs/videos/final_demo.mp4`](videos/final_demo.mp4), Part 1 (0:00-0:58). One combined video covers both sprints (DEVIATIONS D7).
 
 ## Goal
 
@@ -36,7 +36,7 @@ A working base product: login with roles, hostel blocks and rooms, room allocati
 
 ## What the demo shows (video Part 1)
 
-Login as Student and Admin with role-based dashboards; blocks and rooms; allocating a student and the "no free beds" refusal at capacity; fee structure and the student's fee statement; a student raising a complaint with a photo; a student getting 403 on `/reports/`.
+Role-based login and the Admin dashboard; blocks and rooms with live availability; two admins competing for the last bed in single room A101, where the second allocation is refused because A101 has no free beds; fee structure and the student's itemised fee statement; a student raising a complaint with a photo (ticket CMP-000001); a student getting 403 on `/reports/`.
 
 ## Review and retrospective
 

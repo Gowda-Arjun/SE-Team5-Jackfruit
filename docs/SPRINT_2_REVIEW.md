@@ -2,7 +2,7 @@
 
 **Window:** 26-30 Oct 2026 (planned) · feature work completed mid-November 2026 (see [DEVIATIONS](DEVIATIONS.md) D3)
 **Development frozen:** on merge of HMS-36 and HMS-37, tag `v1.0`
-**Demo video:** [`docs/videos/final_demo.mp4`](videos/final_demo.mp4), Part 2 (1:20 to the end). One combined video covers both sprints (DEVIATIONS D7).
+**Demo video:** [`docs/videos/final_demo.mp4`](videos/final_demo.mp4), Part 2 (0:58-2:20). One combined video covers both sprints (DEVIATIONS D7).
 
 ## Goal
 
@@ -34,7 +34,7 @@ The complete product: password reset, room changes, online payment with receipts
 
 ## What the demo shows (video Part 2)
 
-Password reset by email OTP; a room-change request approved by the Warden; a sandbox payment and the PDF receipt; reconciliation and the defaulters list; a complaint moving through its statuses with the student notified; reports for a date range exported to CSV and PDF; the read-only audit log.
+Password reset by email OTP; a sandbox payment with a signed webhook and the PDF receipt; a room-change request approved by the Warden; reconciliation (1 matched payment) and the defaulters list; a complaint moving Open, In Progress, Resolved with the student emailed; an occupancy report for a date range exported to CSV and PDF; the append-only audit log.
 
 ## Not completed / known limitations
 
