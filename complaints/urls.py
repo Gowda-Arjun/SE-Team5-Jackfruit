@@ -10,4 +10,5 @@ urlpatterns = [
     path("queue/", views.complaint_queue, name="queue"),
     path("<str:ticket_id>/", views.complaint_detail, name="detail"),
     path("<str:ticket_id>/status/", views.complaint_update_status, name="update_status"),
+    path("<str:ticket_id>/photo/", views.complaint_photo, name="photo"),
 ]
