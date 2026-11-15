@@ -11,5 +11,6 @@ Deliverables Part-2 (2i) requires deviations to be documented and explained at t
 | D5 | SAD 3.6 | Python 3.11 | Python 3.12 | Current stable version on team machines; no API differences for Django 5.1 |
 | D6 | SAD 3.4 (Nginx/Gunicorn) | Staging VM behind Nginx + Gunicorn with TLS | Demo runs on Django dev server / Docker Compose | No staging VM within the timeline; HTTPS settings covered by HMS-SR-001 settings and `check --deploy` |
 | D7 | Deliverables 2g/2h, 3b | Separate Sprint 1 demo video (HMS-20, 1 min) and Sprint 2 demo video (HMS-37, 2 min) | One combined final demo video (HMS-37, ~3 min) covering both sprints; HMS-20 closed as merged into HMS-37 and its story point moved to HMS-37 | Team decision: Sprint 1 finished late (D3), so a separate Sprint 1 recording would show an incomplete build days before the final one |
+| D8 | SAD ADR-05 | Razorpay payment gateway | ADR-05 (gateway) decided: Razorpay test mode, with a mock gateway as the default for development and CI. | The mock gateway supports local development and CI without live payment credentials |
 
 <!-- Add a row whenever your PR differs from what the SRS/SAD/STP says. -->

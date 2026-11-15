@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Test payment{% endblock %}
+{% block content %}
+<h1 class="h3 mb-3">Test payment</h1>
+<p>Choose an outcome for this test payment.</p>
+{% for button in buttons %}
+  <form method="post" action="{% url 'fees:webhook' %}" class="d-inline">
+    <input type="hidden" name="payload" value="{{ button.payload }}">
+    <input type="hidden" name="signature" value="{{ button.signature }}">
+    <button class="btn btn-primary me-2" type="submit">{{ button.label }}</button>
+  </form>
+{% endfor %}
+{% endblock %}
