@@ -51,4 +51,4 @@ Source of truth: [`backlog.csv`](backlog.csv). Every item traces to an SRS v1.0 
 | HMS-34 | Data protection: per-user filtering and no PII in logs | HMS-NF-003 | Arnav | 2 | High |
 | HMS-35 | Audit log retention (3 years) and archive export | HMS-NF-004 | Arnav | 2 | High |
 | HMS-36 | Final documentation: deviations + RTM status + README | Deliverable 3c | Arnav | 2 | High |
-| HMS-37 | Final demo video (Sprint 1 + Sprint 2, ~3 min) uploaded to repo | Deliverable 2g/2h + 3b | Arnav | 2 | High |
+| HMS-37 | Final demo video (Sprint 1 + Sprint 2, 2:20, [`docs/videos/final_demo.mp4`](../videos/final_demo.mp4)) uploaded to repo | Deliverable 2g/2h + 3b | Arnav | 2 | High |
