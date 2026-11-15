@@ -29,7 +29,7 @@ Source of truth: [`backlog.csv`](backlog.csv). Every item traces to an SRS v1.0 
 | HMS-19 | Student raises maintenance complaint with optional photo | HMS-F-030 | Arnav | 3 | Medium |
 | HMS-20 | ~~Sprint 1 demo video (1 min)~~ merged into HMS-37 (see DEVIATIONS D7) | Deliverable 2g/2h | Arnav | 0 | High |
 
-## Sprint 2 - 26-30 Oct 2026
+## Sprint 2 - 26-30 Oct 2026 (completed late, mid-November; see DEVIATIONS D3)
 
 **Points:** 54 total - Arjav 9, Arjun 10, Armaan 16, Arnav 19
 
