@@ -1,27 +1,35 @@
-import logging
+import io
 import json
+import logging
 import uuid
 from decimal import Decimal, InvalidOperation
 from hashlib import sha256
 from hmac import new as hmac_new
+from xml.sax.saxutils import escape
 
 from django.contrib import messages
 from django.conf import settings
 from django.core.mail import send_mail
+from django.core.paginator import Paginator
 from django.db import transaction
+from django.db.models import Prefetch
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotFound
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table
 
-from accounts.models import User
+from accounts.models import StudentProfile, User
 from audit.models import AuditLog
 from audit.services import write_audit
 from core.decorators import role_required
 
 from .forms import FeeStructureForm, ReconciliationForm
 from .gateway import PaymentGatewayUnavailable, get_gateway
-from .models import FeeStatement, FeeStructure, Payment
+from .models import FeeStatement, FeeStructure, Payment, Receipt
 from .services import (
     CURRENT_TERM,
     NoActiveAllocation,
@@ -46,7 +54,13 @@ def my_fees(request):
         except NoActiveAllocation:
             allocation = None
 
-    statements = FeeStatement.objects.filter(student=request.user)
+    successful_payments = Payment.objects.filter(
+        status=Payment.Status.SUCCESS,
+        receipt__isnull=False,
+    )
+    statements = FeeStatement.objects.filter(student=request.user).prefetch_related(
+        Prefetch("payments", queryset=successful_payments)
+    )
     room_type = allocation.room.room_type if allocation is not None else None
     room_type_label = dict(FeeStructure.RoomType.choices).get(room_type, room_type)
     return render(
@@ -270,6 +284,10 @@ def webhook(request):
                 payment,
                 details={"amount": str(payment.amount)},
             )
+            Receipt.objects.get_or_create(
+                payment=payment,
+                defaults={"receipt_no": f"RCPT-{payment.pk:06d}"},
+            )
             transaction.on_commit(
                 lambda: send_mail(
                     subject="Hostel fee payment confirmed",
@@ -292,6 +310,75 @@ def webhook(request):
             )
 
     return HttpResponse(status=200)
+
+
+@require_GET
+def receipt(request, payment_id):
+    if not request.user.is_authenticated:
+        return HttpResponseNotFound()
+
+    allowed_staff_role = request.user.role in (
+        User.Role.WARDEN,
+        User.Role.ADMIN,
+    )
+    receipt_record = get_object_or_404(
+        Receipt.objects.select_related("payment__statement__student"),
+        payment_id=payment_id,
+        payment__status=Payment.Status.SUCCESS,
+    )
+    if not allowed_staff_role and (
+        request.user.role != User.Role.STUDENT
+        or receipt_record.payment.statement.student_id != request.user.pk
+    ):
+        return HttpResponseNotFound()
+
+    student = receipt_record.payment.statement.student
+    profile = StudentProfile.objects.filter(user=student).first()
+    student_name = profile.full_name if profile else student.get_full_name()
+    student_name = student_name or student.username
+    roll_number = student.roll_number or "N/A"
+    transaction_id = receipt_record.payment.gateway_txn_id or "N/A"
+    receipt_date = timezone.localtime(receipt_record.created_at).strftime(
+        "%d %b %Y %H:%M"
+    )
+
+    buffer = io.BytesIO()
+    document = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        title=f"Fee receipt {receipt_record.receipt_no}",
+        author="HMS",
+        pageCompression=1,
+    )
+    styles = getSampleStyleSheet()
+    rows = [
+        ["Receipt number", receipt_record.receipt_no],
+        ["Transaction ID", transaction_id],
+        ["Amount", str(receipt_record.payment.amount)],
+        ["Date", receipt_date],
+        ["Student name", student_name],
+        ["Roll number", roll_number],
+        ["Term", receipt_record.payment.statement.term],
+    ]
+    document.build(
+        [
+            Paragraph("Hostel Management System - Fee Receipt", styles["Title"]),
+            Spacer(1, 16),
+            Table(
+                [
+                    [escape(label), escape(value)]
+                    for label, value in rows
+                ],
+                colWidths=[120, 300],
+            ),
+        ]
+    )
+
+    response = HttpResponse(buffer.getvalue(), content_type="application/pdf")
+    response["Content-Disposition"] = (
+        f'attachment; filename="{receipt_record.receipt_no}.pdf"'
+    )
+    return response
 
 
 @role_required(User.Role.ADMIN, User.Role.WARDEN)
@@ -324,11 +411,13 @@ def reconciliation(request):
 
 @role_required(User.Role.ADMIN, User.Role.WARDEN)
 def structure_list(request):
-    structures = FeeStructure.objects.all()
+    structures_qs = FeeStructure.objects.all().order_by("-effective_from", "term", "room_type")
+    paginator = Paginator(structures_qs, 25)
+    page_obj = paginator.get_page(request.GET.get("page"))
     return render(
         request,
         "fees/structure_list.html",
-        {"structures": structures},
+        {"structures": page_obj, "page_obj": page_obj},
     )
 
 

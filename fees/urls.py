@@ -17,6 +17,11 @@ urlpatterns = [
         views.razorpay_checkout,
         name="razorpay_checkout",
     ),
+    path(
+        "payments/<int:payment_id>/receipt/",
+        views.receipt,
+        name="receipt",
+    ),
     path("webhook/", views.webhook, name="webhook"),
     path("reconciliation/", views.reconciliation, name="reconciliation"),
     path("structures/", views.structure_list, name="structure_list"),

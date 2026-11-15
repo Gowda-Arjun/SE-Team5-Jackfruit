@@ -7,7 +7,7 @@
   <dt class="col-sm-3">Category</dt><dd class="col-sm-9">{{ complaint.get_category_display }}</dd>
   <dt class="col-sm-3">Description</dt><dd class="col-sm-9">{{ complaint.description|linebreaksbr }}</dd>
   <dt class="col-sm-3">Raised</dt><dd class="col-sm-9">{{ complaint.created_at|date:"d M Y, H:i" }}</dd>
-  {% if complaint.photo %}<dt class="col-sm-3">Photo</dt><dd class="col-sm-9">Attached</dd>{% endif %}
+  {% if complaint.photo %}<dt class="col-sm-3">Photo</dt><dd class="col-sm-9"><a href="{% url 'complaints:photo' complaint.ticket_id %}">Download photo</a></dd>{% endif %}
 </dl>
 <h2 class="h5">Status timeline</h2>
 <ol class="list-group list-group-numbered">
