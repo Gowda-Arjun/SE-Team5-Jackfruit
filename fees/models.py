@@ -11,7 +11,7 @@ class FeeStructure(models.Model):
     term = models.CharField(max_length=20)
     room_type = models.CharField(max_length=10, choices=RoomType.choices)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
-    due_date = models.DateField()
+    due_date = models.DateField(db_index=True)
     effective_from = models.DateField()
 
     class Meta:
@@ -40,7 +40,7 @@ class FeeStatement(models.Model):
     term = models.CharField(max_length=20)
     amount_due = models.DecimalField(max_digits=10, decimal_places=2)
     amount_paid = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    due_date = models.DateField()
+    due_date = models.DateField(db_index=True)
 
     class Meta:
         ordering = ["term"]

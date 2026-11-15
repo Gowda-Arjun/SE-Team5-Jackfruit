@@ -9,6 +9,7 @@ from xml.sax.saxutils import escape
 from django.contrib import messages
 from django.conf import settings
 from django.core.mail import send_mail
+from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Prefetch
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotFound
@@ -378,11 +379,13 @@ def receipt(request, payment_id):
 
 @role_required(User.Role.ADMIN, User.Role.WARDEN)
 def structure_list(request):
-    structures = FeeStructure.objects.all()
+    structures_qs = FeeStructure.objects.all().order_by("-effective_from", "term", "room_type")
+    paginator = Paginator(structures_qs, 25)
+    page_obj = paginator.get_page(request.GET.get("page"))
     return render(
         request,
         "fees/structure_list.html",
-        {"structures": structures},
+        {"structures": page_obj, "page_obj": page_obj},
     )
 
 
