@@ -1,50 +1,50 @@
 # Requirements Traceability Matrix (final)
 
-Final status of STP v1.0 Section 13.2 at development freeze. Each SRS v1.0 requirement is linked to its design reference (SAD 3.8), module, backlog item, owner, Test Plan case and the automated tests that execute it.
+Final status of STP v1.0 Section 13.2 at development freeze. Each SRS v1.0 requirement is linked to its design reference (SAD 3.8), module, backlog item, owner, code file(s), Test Plan case, the automated unit/integration tests that execute it, and its system test cases (columns as in the course SRS template, Appendix C).
 
 **Status:** N = not tested, P = partially tested, A = all mapped test cases passed.
-**Summary:** 31 requirements: **27 A, 4 P, 0 N**. Results and evidence are in [TEST_REPORT.md](TEST_REPORT.md).
+**Summary:** 31 requirements: **27 A, 4 P, 0 N**. Results and evidence are in [TEST_REPORT.md](TEST_REPORT.md) (summary), [UNIT_TEST_REPORT.md](UNIT_TEST_REPORT.md) (unit/integration, coverage) and [SYSTEM_TEST_REPORT.md](SYSTEM_TEST_REPORT.md) (end-to-end, ST_nn).
 
 ## Functional requirements
 
-| Req ID | Requirement (short) | Design ref | Module | Backlog | Owner | Test case(s) | Automated test(s) | Status |
-|---|---|---|---|---|---|---|---|---|
-| HMS-F-001 | Log in with institute email/roll number and role | DS-Auth-01 | AuthModule | HMS-04 | Arjav | TC-Auth-01 | `core/tests/test_smoke.py` (login flow, dashboard by role), `core/tests/test_seed_demo.py::test_seeded_accounts_can_log_in` | A (accounts created by Admin, see [D10](DEVIATIONS.md)) |
-| HMS-F-002 | Student profile update | DS-Auth-03 | AuthModule | HMS-08 | Arjav | TC-Auth-02 | `accounts/tests/test_profile.py` | A |
-| HMS-F-003 | OTP password reset (10 min) | DS-Auth-04 | AuthModule | HMS-21 | Arjav | TC-Auth-03, TC-Sec-12 | `accounts/tests/test_password_reset.py` (hashed OTP, single use, expiry) | A (TC-Sec-12 rate limiting not built, see [D14](DEVIATIONS.md)) |
-| HMS-F-004 | Session timeout (20 min) | DS-Auth-05 | AuthModule | HMS-07 | Arjav | TC-Auth-04, TC-Sec-08 | `accounts/tests/test_session.py`, `core/tests/test_security_validation.py::test_post_without_csrf_token_is_rejected` | A |
-| HMS-F-005 | Enforce RBAC (403 and logged) | DS-Auth-02 | AuthModule | HMS-06 | Arjav | TC-Auth-05, TC-Sec-04 | `core/tests/test_security_validation.py::test_denied_role_access_returns_403_and_is_logged`, plus 403 tests in every module | A |
-| HMS-F-010 | View own room and roommates | DS-Alloc-03 | AllocationModule | HMS-13 | Arjun | TC-Alloc-01 | `allocation/tests/test_my_room.py` | A |
-| HMS-F-011 | Admin CRUD on student records | DS-Alloc-04 | AllocationModule | HMS-10 | Arjun | TC-Alloc-02 | `allocation/tests/test_student_records.py` | A |
-| HMS-F-012 | Allocate / reallocate room | DS-Alloc-01 | AllocationModule | HMS-11 | Arjun | TC-Alloc-03 | `allocation/tests/test_allocation.py` (gender policy, inactive room, reallocation) | A |
-| HMS-F-013 | Room-change request and approval | DS-Alloc-05 | AllocationModule | HMS-25 | Arjun | TC-Alloc-04 | `allocation/tests/test_room_change.py` | A |
-| HMS-F-014 | Manage blocks, rooms, capacity | DS-Alloc-06 | AllocationModule | HMS-09 | Arjun | TC-Alloc-05 | `allocation/tests/test_blocks_rooms.py` | A |
-| HMS-F-015 | Prevent over-allocation | DS-Alloc-02 | AllocationModule, PostgreSQL | HMS-12 | Arjun | TC-Alloc-06 | `allocation/tests/test_allocation.py::test_boundaries_n_minus_1_n_n_plus_1_occupancy`, `::test_second_active_allocation_impossible`, `allocation/tests/test_blocks_rooms.py::test_capacity_less_than_occupancy_rejected_by_db_constraint` | A |
-| HMS-F-020 | Itemised fee statement | DS-Fee-03 | FeeModule | HMS-15 | Armaan | TC-Fee-01 | `fees/tests/test_fee_statements.py` | A |
-| HMS-F-021 | Online fee payment (sandbox) | DS-Fee-01 | FeeModule, gateway adapter | HMS-28 | Armaan | TC-Fee-02, TC-Sec-10 | `fees/tests/test_payments.py` (signed webhook, replay, amount mismatch, failed payment) | A |
-| HMS-F-022 | Configure fee structure per term | DS-Fee-04 | FeeModule | HMS-14 | Armaan | TC-Fee-03 | `fees/tests/test_fee_structures.py` | A |
-| HMS-F-023 | PDF payment receipt | DS-Fee-05 | FeeModule | HMS-29 | Armaan | TC-Fee-04 | `fees/tests/test_payments.py` (receipt owner / other student / pending / warden) | A |
-| HMS-F-024 | Reconcile payments / flag defaulters | DS-Fee-02 | FeeModule | HMS-30 | Armaan | TC-Fee-05 | `fees/tests/test_reconciliation.py` | A |
-| HMS-F-030 | Raise maintenance complaint | DS-Maint-01 | ComplaintModule | HMS-19 | Arnav | TC-Maint-01, TC-Sec-09 | `complaints/tests/test_complaints.py` (incl. `test_unsafe_uploads_rejected`) | A |
-| HMS-F-031 | Complaint status workflow | DS-Maint-02 | ComplaintModule | HMS-31 | Arnav | TC-Maint-02 | `complaints/tests/test_status_workflow.py` | A |
-| HMS-F-040 | Occupancy / vacancy / fee reports | DS-Rep-01 | ReportingModule | HMS-32 | Arnav | TC-Rep-01 | `reports/tests/test_reports.py` | A |
-| HMS-F-041 | CSV and PDF export | DS-Rep-02 | ReportingModule | HMS-33 | Arnav | TC-Rep-02 | `reports/tests/test_exports.py` | A |
+| Req ID | Requirement (short) | Design ref | Module | Backlog | Owner | Test case(s) | Code file(s) | Automated test(s) | System test(s) | Status |
+|---|---|---|---|---|---|---|---|---|---|---|
+| HMS-F-001 | Log in with institute email/roll number and role | DS-Auth-01 | AuthModule | HMS-04 | Arjav | TC-Auth-01 | `accounts/urls.py` (LoginView), `accounts/models.py`, `core/views.py` (`home`) | `core/tests/test_smoke.py` (login flow, dashboard by role), `core/tests/test_seed_demo.py::test_seeded_accounts_can_log_in` | ST_01, ST_02, ST_18, ST_19 | A (accounts created by Admin, see [D10](DEVIATIONS.md)) |
+| HMS-F-002 | Student profile update | DS-Auth-03 | AuthModule | HMS-08 | Arjav | TC-Auth-02 | `accounts/views.py` (`profile`), `accounts/forms.py` | `accounts/tests/test_profile.py` | ST_03 | A |
+| HMS-F-003 | OTP password reset (10 min) | DS-Auth-04 | AuthModule | HMS-21 | Arjav | TC-Auth-03, TC-Sec-12 | `accounts/password_reset_views.py`, `accounts/password_reset_forms.py`, `accounts/models.py` | `accounts/tests/test_password_reset.py` (hashed OTP, single use, expiry) | ST_04 | A (TC-Sec-12 rate limiting not built, see [D14](DEVIATIONS.md)) |
+| HMS-F-004 | Session timeout (20 min) | DS-Auth-05 | AuthModule | HMS-07 | Arjav | TC-Auth-04, TC-Sec-08 | `config/settings.py` (`SESSION_COOKIE_AGE`, `SESSION_SAVE_EVERY_REQUEST`) | `accounts/tests/test_session.py`, `core/tests/test_security_validation.py::test_post_without_csrf_token_is_rejected` | ST_05 | A |
+| HMS-F-005 | Enforce RBAC (403 and logged) | DS-Auth-02 | AuthModule | HMS-06 | Arjav | TC-Auth-05, TC-Sec-04 | `core/decorators.py` (`role_required`) | `core/tests/test_security_validation.py::test_denied_role_access_returns_403_and_is_logged`, plus 403 tests in every module | ST_17, ST_18 | A |
+| HMS-F-010 | View own room and roommates | DS-Alloc-03 | AllocationModule | HMS-13 | Arjun | TC-Alloc-01 | `allocation/views.py` (`my_room`) | `allocation/tests/test_my_room.py` | ST_06 | A |
+| HMS-F-011 | Admin CRUD on student records | DS-Alloc-04 | AllocationModule | HMS-10 | Arjun | TC-Alloc-02 | `allocation/services.py` (`create_student`, `update_student`, `deactivate_student`), `allocation/views.py`, `allocation/forms.py` | `allocation/tests/test_student_records.py` | ST_19 | A |
+| HMS-F-012 | Allocate / reallocate room | DS-Alloc-01 | AllocationModule | HMS-11 | Arjun | TC-Alloc-03 | `allocation/services.py` (`allocate_room`), `allocation/views.py` (`allocate`) | `allocation/tests/test_allocation.py` (gender policy, inactive room, reallocation) | ST_07, ST_22, ST_23 | A |
+| HMS-F-013 | Room-change request and approval | DS-Alloc-05 | AllocationModule | HMS-25 | Arjun | TC-Alloc-04 | `allocation/services.py` (`create_/approve_/reject_room_change_request`), `allocation/views.py` | `allocation/tests/test_room_change.py` | ST_08, ST_29 | A |
+| HMS-F-014 | Manage blocks, rooms, capacity | DS-Alloc-06 | AllocationModule | HMS-09 | Arjun | TC-Alloc-05 | `allocation/services.py` (block/room functions), `allocation/views.py`, `allocation/forms.py` | `allocation/tests/test_blocks_rooms.py` | ST_20, ST_21 | A |
+| HMS-F-015 | Prevent over-allocation | DS-Alloc-02 | AllocationModule, PostgreSQL | HMS-12 | Arjun | TC-Alloc-06 | `allocation/services.py` (`allocate_room`, `select_for_update`), `allocation/models.py` (capacity constraint) | `allocation/tests/test_allocation.py::test_boundaries_n_minus_1_n_n_plus_1_occupancy`, `::test_second_active_allocation_impossible`, `allocation/tests/test_blocks_rooms.py::test_capacity_less_than_occupancy_rejected_by_db_constraint` | ST_22 | A |
+| HMS-F-020 | Itemised fee statement | DS-Fee-03 | FeeModule | HMS-15 | Armaan | TC-Fee-01 | `fees/services.py` (`get_or_create_statement`), `fees/views.py` (`my_fees`) | `fees/tests/test_fee_statements.py` | ST_09 | A |
+| HMS-F-021 | Online fee payment (sandbox) | DS-Fee-01 | FeeModule, gateway adapter | HMS-28 | Armaan | TC-Fee-02, TC-Sec-10 | `fees/views.py` (`pay`, `mock_checkout`, `webhook`), `fees/gateway.py` | `fees/tests/test_payments.py` (signed webhook, replay, amount mismatch, failed payment) | ST_10, ST_32 | A |
+| HMS-F-022 | Configure fee structure per term | DS-Fee-04 | FeeModule | HMS-14 | Armaan | TC-Fee-03 | `fees/models.py`, `fees/forms.py`, `fees/views.py` (`structure_*`) | `fees/tests/test_fee_structures.py` | ST_24 | A |
+| HMS-F-023 | PDF payment receipt | DS-Fee-05 | FeeModule | HMS-29 | Armaan | TC-Fee-04 | `fees/views.py` (`receipt`), `fees/models.py` (`Receipt`) | `fees/tests/test_payments.py` (receipt owner / other student / pending / warden) | ST_11 | A |
+| HMS-F-024 | Reconcile payments / flag defaulters | DS-Fee-02 | FeeModule | HMS-30 | Armaan | TC-Fee-05 | `fees/services.py` (`reconcile_payments`), `fees/views.py` (`reconciliation`), `fees/gateway.py` | `fees/tests/test_reconciliation.py` | ST_12 | A |
+| HMS-F-030 | Raise maintenance complaint | DS-Maint-01 | ComplaintModule | HMS-19 | Arnav | TC-Maint-01, TC-Sec-09 | `complaints/forms.py`, `complaints/views.py`, `complaints/services.py` | `complaints/tests/test_complaints.py` (incl. `test_unsafe_uploads_rejected`) | ST_13, ST_25 | A |
+| HMS-F-031 | Complaint status workflow | DS-Maint-02 | ComplaintModule | HMS-31 | Arnav | TC-Maint-02 | `complaints/services.py`, `complaints/views.py` | `complaints/tests/test_status_workflow.py` | ST_14, ST_27 | A |
+| HMS-F-040 | Occupancy / vacancy / fee reports | DS-Rep-01 | ReportingModule | HMS-32 | Arnav | TC-Rep-01 | `reports/services.py`, `reports/views.py`, `reports/forms.py` | `reports/tests/test_reports.py` | ST_15, ST_28 | A |
+| HMS-F-041 | CSV and PDF export | DS-Rep-02 | ReportingModule | HMS-33 | Arnav | TC-Rep-02 | `reports/exports.py` | `reports/tests/test_exports.py` | ST_16 | A |
 
 ## Non-functional and security requirements
 
-| Req ID | Requirement (short) | Design ref | Module | Backlog | Owner | Test case(s) | Evidence | Status |
-|---|---|---|---|---|---|---|---|---|
-| HMS-NF-001 | p95 <= 2 s at 200 users | DS-Perf-01 | Web UI, all modules | HMS-26 | Arjun | TC-Perf-01 | [Locust report](perf/locust_report.html): p95 6.2 s, 7.3% failures on SQLite dev server | P (target not met in the local environment, see [D9](DEVIATIONS.md)) |
-| HMS-NF-002 | 99.5% availability | DS-Ops-01 | Deployment config | HMS-24 | Arjav | TC-Ops-02 | `core/tests/test_health.py`, `core/tests/test_smoke.py::test_health_check`, Compose `restart: unless-stopped` ([uptime.md](uptime.md)) | P (partial by design, STP Section 4; no soak test) |
-| HMS-NF-003 | Data protection, no card data | DS-Sec-02 | All modules | HMS-34 | Arnav | TC-Sec-01, TC-Sec-06, TC-Sec-07 | `complaints/tests/test_data_protection.py` (per-user filtering, photo access, PII masking in logs), `fees/tests/test_no_card_fields.py`; TC-Sec-07 by code review + Bandit | A (TC-Sec-07 method, see [D13](DEVIATIONS.md)) |
-| HMS-NF-004 | 3-year audit retention | DS-Ops-02 | Audit component | HMS-35 | Arnav | TC-Ops-01 | `audit/tests/test_retention.py` (setting, archive, restore round trip) | A (config + archive/restore, partial by design per STP Section 4) |
-| HMS-NF-005 | Responsive and WCAG 2.1 AA UI | DS-UX-01 | Web UI | HMS-22 | Arjav | TC-UX-01 | Responsive templates and labelled forms (HMS-22, PR #62) | P (manual audit at 3 viewports not recorded) |
-| HMS-NF-006 | 5,000 students / 2,000 rooms; modular | DS-Scale-01 | All modules | HMS-01, HMS-27 | Arjun | TC-Scale-01 | [scale_results.md](perf/scale_results.md): paginated pages 4-7 ms on the full dataset | A |
-| HMS-SR-001 | TLS 1.2+ only, HTTP redirected | DS-Sec-03 | Deployment config | HMS-23 | Arjav | TC-Sec-02 | `core/tests/test_security_settings.py`; `manage.py check --deploy` clean with `DJANGO_DEBUG=0` | P (no staging host to scan, see [D6](DEVIATIONS.md)) |
-| HMS-SR-002 | Salted password hashing | DS-Sec-01 | AuthModule | HMS-05 | Arjav | TC-Sec-03 | `core/tests/test_smoke.py::test_password_is_hashed` | A |
-| HMS-SR-003 | RBAC at view (and API) layer | DS-Sec-04 | AuthModule | HMS-06 | Arjav | TC-Sec-04 | `core/tests/test_security_validation.py`, 403 tests in every module | A (no REST API built, see [D2](DEVIATIONS.md)) |
-| HMS-SR-004 | Immutable audit log | DS-Sec-05 | Audit component | HMS-18 | Arnav | TC-Sec-05 | `audit/tests/test_audit.py` (PostgreSQL trigger test runs in CI) | A |
-| HMS-SR-005 | Gateway only, no card data | DS-Sec-06 | FeeModule | HMS-17 | Armaan | TC-Sec-06 | `fees/tests/test_no_card_fields.py`, `fees/tests/test_payments.py::test_payment_has_no_card_data_fields` | A |
+| Req ID | Requirement (short) | Design ref | Module | Backlog | Owner | Test case(s) | Evidence | System test(s) | Status |
+|---|---|---|---|---|---|---|---|---|---|
+| HMS-NF-001 | p95 <= 2 s at 200 users | DS-Perf-01 | Web UI, all modules | HMS-26 | Arjun | TC-Perf-01 | [Locust report](perf/locust_report.html): p95 6.2 s, 7.3% failures on SQLite dev server | - | P (target not met in the local environment, see [D9](DEVIATIONS.md)) |
+| HMS-NF-002 | 99.5% availability | DS-Ops-01 | Deployment config | HMS-24 | Arjav | TC-Ops-02 | `core/tests/test_health.py`, `core/tests/test_smoke.py::test_health_check`, Compose `restart: unless-stopped` ([uptime.md](uptime.md)) | - | P (partial by design, STP Section 4; no soak test) |
+| HMS-NF-003 | Data protection, no card data | DS-Sec-02 | All modules | HMS-34 | Arnav | TC-Sec-01, TC-Sec-06, TC-Sec-07 | `complaints/tests/test_data_protection.py` (per-user filtering, photo access, PII masking in logs), `fees/tests/test_no_card_fields.py`; TC-Sec-07 by code review + Bandit | ST_26 | A (TC-Sec-07 method, see [D13](DEVIATIONS.md)) |
+| HMS-NF-004 | 3-year audit retention | DS-Ops-02 | Audit component | HMS-35 | Arnav | TC-Ops-01 | `audit/tests/test_retention.py` (setting, archive, restore round trip) | - | A (config + archive/restore, partial by design per STP Section 4) |
+| HMS-NF-005 | Responsive and WCAG 2.1 AA UI | DS-UX-01 | Web UI | HMS-22 | Arjav | TC-UX-01 | Responsive templates and labelled forms (HMS-22, PR #62) | ST_30 | P (manual audit at 3 viewports not recorded) |
+| HMS-NF-006 | 5,000 students / 2,000 rooms; modular | DS-Scale-01 | All modules | HMS-01, HMS-27 | Arjun | TC-Scale-01 | [scale_results.md](perf/scale_results.md): paginated pages 4-7 ms on the full dataset | - | A |
+| HMS-SR-001 | TLS 1.2+ only, HTTP redirected | DS-Sec-03 | Deployment config | HMS-23 | Arjav | TC-Sec-02 | `core/tests/test_security_settings.py`; `manage.py check --deploy` clean with `DJANGO_DEBUG=0` | - | P (no staging host to scan, see [D6](DEVIATIONS.md)) |
+| HMS-SR-002 | Salted password hashing | DS-Sec-01 | AuthModule | HMS-05 | Arjav | TC-Sec-03 | `core/tests/test_smoke.py::test_password_is_hashed` | - | A |
+| HMS-SR-003 | RBAC at view (and API) layer | DS-Sec-04 | AuthModule | HMS-06 | Arjav | TC-Sec-04 | `core/tests/test_security_validation.py`, 403 tests in every module | ST_11, ST_17, ST_26 | A (no REST API built, see [D2](DEVIATIONS.md)) |
+| HMS-SR-004 | Immutable audit log | DS-Sec-05 | Audit component | HMS-18 | Arnav | TC-Sec-05 | `audit/tests/test_audit.py` (PostgreSQL trigger test runs in CI) | ST_33 | A |
+| HMS-SR-005 | Gateway only, no card data | DS-Sec-06 | FeeModule | HMS-17 | Armaan | TC-Sec-06 | `fees/tests/test_no_card_fields.py`, `fees/tests/test_payments.py::test_payment_has_no_card_data_fields` | ST_10 | A |
 
 ## Additional security validation (STP 5.1.2, not tied to an SRS requirement)
 

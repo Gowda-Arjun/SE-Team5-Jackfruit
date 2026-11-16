@@ -18,6 +18,9 @@ SE Jackfruit mini-project (UE24CS341A). Django 5 + PostgreSQL 15 + Bootstrap 5.
 | Deviations from SRS / SAD / Test Plan | [docs/DEVIATIONS.md](docs/DEVIATIONS.md) |
 | Requirements Traceability Matrix (final) | [docs/RTM.md](docs/RTM.md) |
 | Test Summary Report (results, coverage, security, exit criteria) | [docs/TEST_REPORT.md](docs/TEST_REPORT.md) |
+| Unit Test Report (unit and integration cases, code and branch coverage) | [docs/UNIT_TEST_REPORT.md](docs/UNIT_TEST_REPORT.md) |
+| System Test Report (end-to-end browser test cases ST_01-ST_33) | [docs/SYSTEM_TEST_REPORT.md](docs/SYSTEM_TEST_REPORT.md) |
+| Maintenance Plan | [docs/MAINTENANCE_PLAN.md](docs/MAINTENANCE_PLAN.md) |
 | Performance and scale results | [docs/perf/](docs/perf/) |
 | Health check and restart policy | [docs/uptime.md](docs/uptime.md) |
 | Team guides | [docs/guides/](docs/guides/) |
@@ -74,6 +77,8 @@ python manage.py makemigrations --check --dry-run
 ```
 
 CI (GitHub Actions) runs all three against PostgreSQL 15 on every pull request. Results, coverage and security scans: [docs/TEST_REPORT.md](docs/TEST_REPORT.md).
+
+End-to-end system tests run in a browser against a throw-away copy of the app (needs `pip install playwright && playwright install chromium` once): `python docs/test-evidence/system/run_system_tests.py --server-python .venv/Scripts/python.exe`. See [docs/SYSTEM_TEST_REPORT.md](docs/SYSTEM_TEST_REPORT.md).
 
 ## Development freeze
 

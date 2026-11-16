@@ -1,6 +1,6 @@
 # Test Summary Report: Team 5 HMS (final)
 
-Test Plan v1.0 (STP) deliverable "Test Summary Report", owned by the Test Lead (Arnav). Final status per requirement: [RTM.md](RTM.md).
+Test Plan v1.0 (STP) deliverable "Test Summary Report", owned by the Test Lead (Arnav). Final status per requirement: [RTM.md](RTM.md). Detailed test cases and results by level: [UNIT_TEST_REPORT.md](UNIT_TEST_REPORT.md) (unit and integration, code and branch coverage) and [SYSTEM_TEST_REPORT.md](SYSTEM_TEST_REPORT.md) (end-to-end browser tests). Follow-up work: [MAINTENANCE_PLAN.md](MAINTENANCE_PLAN.md).
 
 **Executed:** 15 Nov 2026, on `main` with HMS-30 (#70) and HMS-36 merged in, i.e. the frozen feature set.
 
@@ -19,6 +19,7 @@ The Test Plan's tools differ from what we used; see [DEVIATIONS.md](DEVIATIONS.m
 |---|---|
 | Automated tests | **158**: 157 passed and 1 skipped locally (PostgreSQL-only audit trigger test); all pass in CI on PostgreSQL |
 | Failures | 0 |
+| System tests (browser, 16 Nov 2026) | **33 of 33 passed**, all 20 functional requirements covered end to end ([SYSTEM_TEST_REPORT.md](SYSTEM_TEST_REPORT.md)) |
 | RTM status | 31 requirements: **27 A, 4 P, 0 N** |
 | Statement coverage | 88% |
 | Branch coverage | 68% |
@@ -92,7 +93,7 @@ STP Section 5.1: TC-Sec-01 to TC-Sec-06 verify the SRS security requirements; TC
 
 Changes to the STP v1.0 test cases made during the sprints:
 
-- **Executed with pytest instead of the planned tools.** The planned Selenium system tests, Postman collection and ZAP/testssl runs were replaced by pytest + Django test client cases covering the same steps (D13). Detailed cases are the test functions named in [RTM.md](RTM.md) rather than a separate `/docs/test-cases` folder.
+- **Executed with different tools than planned.** Unit, integration and security cases run with pytest + Django test client instead of Postman and ZAP/testssl; the planned Selenium system suite is a Playwright browser run with 33 cases (D13). Detailed cases are in [UNIT_TEST_REPORT.md](UNIT_TEST_REPORT.md) (UT_nn / IT_nn, one per automated test) and [SYSTEM_TEST_REPORT.md](SYSTEM_TEST_REPORT.md) (ST_nn, in the course test-case template), rather than a separate `/docs/test-cases` folder.
 - **Added for sprint changes:** room-change queue and approval into a full room (HMS-25); webhook replay, amount mismatch and null order id (HMS-28); receipt access by other students (HMS-29); reconciliation with gateway outage (HMS-30); complaint photo access and PII masking in Django's own loggers (HMS-34); archive/restore round trip (HMS-35); Technician 403 on the admin dashboard (#50).
 - **Added at freeze (HMS-36):** `core/tests/test_security_validation.py`: CSRF rejection (TC-Sec-08) and "403 is logged" (AC-F-005), which had no automated case.
 - **Changed scope:** TC-Auth-01 tests login only, since accounts are created by the Admin, not by self-registration (D10). TC-Sec-12 is not executed (D14). TC-Ops-01 and TC-Ops-02 stay partial, as planned in STP Section 4.
@@ -106,13 +107,15 @@ Changes to the STP v1.0 test cases made during the sprints:
 | Two fee migrations both numbered `0003` after parallel PRs | Merge of HMS-26 (#67) | Renumbered to `0005` on top of `0004_receipt` |
 | `cp .env.example .env` left `PAYMENT_GATEWAY` empty, so "Pay now" and reconciliation raised `Unsupported PAYMENT_GATEWAY` under Docker Compose | HMS-36 run-instruction check | `.env.example` now sets `PAYMENT_GATEWAY=mock` and a webhook secret (HMS-36) |
 
+| Zero fee amount, when the browser's `min` check is bypassed, shows the raw database constraint name instead of a readable message (DEF-ST-01, Severity 4) | System test ST_24 | Open, deferred to [MAINTENANCE_PLAN.md](MAINTENANCE_PLAN.md) |
+
 No Severity 1 or 2 defects are open in project code.
 
 ## 9. Exit criteria (STP 5.5.2)
 
 | Criterion | Status |
 |---|---|
-| 100% of planned cases executed, >= 95% passing | Not fully met: 33 of 37 anchor cases executed in full (TC-Sec-02 and TC-Ops-02 partial; TC-Sec-12 and TC-UX-01 not executed). Of the 33, 31 passed (TC-Perf-01 target missed, TC-Sec-11 findings open), 94%. All 158 automated tests pass |
+| 100% of planned cases executed, >= 95% passing | Not fully met: 33 of 37 anchor cases executed in full (TC-Sec-02 and TC-Ops-02 partial; TC-Sec-12 and TC-UX-01 not executed). Of the 33, 31 passed (TC-Perf-01 target missed, TC-Sec-11 findings open), 94%. All 158 automated tests and all 33 system tests pass |
 | No open Severity 1/2 defects | Met for project code; Django advisories open as residual risk (Section 5) |
 | High-priority FRs and all five SRs pass | All FRs pass; HMS-SR-001 partial (no TLS scan) |
 | Branch coverage >= 70% overall, >= 80% Allocation and Fee | Not met: 68% overall, Allocation 63%, Fee 60% |
@@ -140,4 +143,6 @@ pip install bandit pip-audit             # in a separate venv
 bandit -r accounts allocation audit complaints config core fees reports -x "*/tests/*,*/migrations/*"
 pip-audit -r requirements.txt
 DJANGO_DEBUG=0 DJANGO_SECRET_KEY=<50+ random chars> DJANGO_ALLOWED_HOSTS=hms.example python manage.py check --deploy
+pip install playwright && playwright install chromium     # once, for the system tests
+python docs/test-evidence/system/run_system_tests.py --server-python .venv/Scripts/python.exe
 ```
